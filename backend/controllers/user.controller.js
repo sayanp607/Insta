@@ -115,7 +115,12 @@ export const login = async (req, res) => {
 
 export const logout = async (_, res) => {
   try {
-      return res.cookie("token", "", { maxAge: 0 }).json({
+      return res.cookie("token", "", { 
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          maxAge: 0 
+      }).json({
           message: 'Logged out successfully.',
           success: true
       });
