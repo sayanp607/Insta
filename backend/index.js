@@ -22,7 +22,8 @@ app.use(cookieParser());
 app.use(urlencoded({extended:true}));
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://insta-frontend-ehjp.vercel.app'
+  'https://insta-frontend-ehjp.vercel.app',
+  'https://insta-rho-eight.vercel.app'
 ];
 
 const corsOptions = {
