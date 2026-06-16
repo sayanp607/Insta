@@ -2,7 +2,7 @@
 import express from "express";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import upload from "../middlewares/multer.js";
-import { getMessage, sendMessage, saveCallHistory, markMessagesAsSeen, sendFileMessage, downloadFile, sendVoiceMessage, downloadVoice, pinMessage, unpinMessage } from "../controllers/message.controller.js";
+import { getMessage, sendMessage, saveCallHistory, markMessagesAsSeen, sendFileMessage, downloadFile, sendVoiceMessage, downloadVoice, pinMessage, unpinMessage, reactToMessage, createGroup } from "../controllers/message.controller.js";
 
 const router = express.Router();
 
@@ -18,5 +18,7 @@ router.route("/call-history").post(isAuthenticated, saveCallHistory);
 router.route("/mark-seen").post(isAuthenticated, markMessagesAsSeen);
 router.route("/pin").post(isAuthenticated, pinMessage);
 router.route("/unpin").post(isAuthenticated, unpinMessage);
+router.route("/react/:messageId").post(isAuthenticated, reactToMessage);
+router.route("/group/create").post(isAuthenticated, createGroup);
 
 export default router;

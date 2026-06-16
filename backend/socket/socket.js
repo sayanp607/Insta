@@ -1,9 +1,13 @@
-import {Server} from "socket.io";
+import { Server } from "socket.io";
 import express from "express";
 import http from "http";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { createClient } from "redis";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -14,6 +18,26 @@ const io = new Server(server, {
   }
 });
 
+// Setup Redis Adapter for multi-process scalability (PAUSED)
+/*
+const pubClient = createClient({
+    username: 'default',
+    password: process.env.REDIS_PASSWORD,
+    socket: {
+        host: process.env.REDIS_HOST,
+        port: parseInt(process.env.REDIS_PORT)
+    }
+});
+const subClient = pubClient.duplicate();
+
+Promise.all([pubClient.connect(), subClient.connect()]).then(() => {
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log("Socket.io Redis Adapter connected");
+}).catch(err => {
+    console.error("Socket.io Redis Adapter error:", err);
+});
+*/
+
 const userSocketMap = {} ;// this map stores socket id corresponding the user id; userId -> socketId
 
 export const getReceiverSocketId = (receiverId) => userSocketMap[receiverId];
@@ -22,21 +46,17 @@ io.on('connection', (socket)=>{
   const userId = socket.handshake.query.userId;
   if(userId){
     userSocketMap[userId] = socket.id;
-    console.log(`user connected : userid= ${userId}, socketid = ${socket.id}`);
+    socket.join(`user:${userId}`); // Join private room for notifications
+    console.log(`user connected : userid= ${userId}, socketid = ${socket.id}, joined room user:${userId}`);
   }
 
   io.emit('getOnlineUsers', Object.keys(userSocketMap));
 
   // WebRTC Video Call Signaling
   socket.on('call:initiate', ({ to, offer, from }) => {
-    console.log(`Call initiated from ${from} to ${to}`);
     const receiverSocketId = getReceiverSocketId(to);
-    console.log(`Receiver socket ID: ${receiverSocketId}`);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit('call:incoming', { from, offer });
-      console.log(`Emitted call:incoming to ${receiverSocketId}`);
-    } else {
-      console.log(`Receiver ${to} is not online`);
     }
   });
 
@@ -45,7 +65,6 @@ io.on('connection', (socket)=>{
     if (callerSocketId) {
       io.to(callerSocketId).emit('call:accepted', { answer, from });
     }
-    // Also notify the receiver (accepter) that their call was accepted
     if (from) {
       const receiverSocketId = getReceiverSocketId(from);
       if (receiverSocketId) {
@@ -77,36 +96,24 @@ io.on('connection', (socket)=>{
 
   // Audio Call Signaling
   socket.on('audio_call:initiate', ({ to, offer, from }) => {
-    console.log(`Audio call initiated from ${from} to ${to}`);
     const receiverSocketId = getReceiverSocketId(to);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit('audio_call:incoming', { from, offer });
-      console.log(`Emitted audio_call:incoming to ${receiverSocketId}`);
-    } else {
-      console.log(`Receiver ${to} is not online`);
     }
   });
 
   // Typing indicator events
   socket.on('typing', ({ to, from }) => {
     const receiverSocketId = getReceiverSocketId(to);
-    console.log(`[SOCKET] Received 'typing' from ${from} to ${to}. Receiver socket: ${receiverSocketId}`);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit('typing', { from });
-      console.log(`[SOCKET] Emitted 'typing' to socket ${receiverSocketId}`);
-    } else {
-      console.log(`[SOCKET] No receiver socket found for user ${to}`);
     }
   });
 
   socket.on('stop typing', ({ to, from }) => {
     const receiverSocketId = getReceiverSocketId(to);
-    console.log(`[SOCKET] Received 'stop typing' from ${from} to ${to}. Receiver socket: ${receiverSocketId}`);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit('stop typing', { from });
-      console.log(`[SOCKET] Emitted 'stop typing' to socket ${receiverSocketId}`);
-    } else {
-      console.log(`[SOCKET] No receiver socket found for user ${to}`);
     }
   });
 
@@ -115,7 +122,6 @@ io.on('connection', (socket)=>{
     if (callerSocketId) {
       io.to(callerSocketId).emit('audio_call:accepted', { answer, from });
     }
-    // Also notify the receiver (accepter) that their call was accepted
     if (from) {
       const receiverSocketId = getReceiverSocketId(from);
       if (receiverSocketId) {
