@@ -6,36 +6,40 @@ const rtnSlice = createSlice({
     likeNotification: [],
     commentNotification: [],
     allNotifications: [], // History of all notifications
+    isFetched: false,
+    unreadCount: 0,
   },
   reducers: {
-    setLikeNotification: (state, action) => {
-      if (action.payload.type === 'like') {
-        const notification = { ...action.payload, read: false, timestamp: Date.now() };
-        state.likeNotification.push(notification);
-        state.allNotifications.unshift(notification); // Add to history at the beginning
-      } else if (action.payload.type === 'dislike') {
-        state.likeNotification = state.likeNotification.filter(
-          (item) => item.userId !== action.payload.userId
-        );
-        // Mark as read in history instead of removing
-        state.allNotifications = state.allNotifications.map(item => 
-          item.userId === action.payload.userId && item.type === 'like'
-            ? { ...item, read: true }
-            : item
-        );
+    setNotifications: (state, action) => {
+      // Handle both old format (array) and new format (object with notifications and unreadCount)
+      const data = action.payload.notifications !== undefined ? action.payload.notifications : action.payload;
+      const count = action.payload.unreadCount !== undefined ? action.payload.unreadCount : 0;
+      
+      state.allNotifications = data;
+      state.unreadCount = count;
+      state.isFetched = true;
+      
+      // Sync unread counts for specific types if needed
+      state.likeNotification = data.filter(n => n.type === 'like' && !n.isRead);
+      state.commentNotification = data.filter(n => n.type === 'comment' && !n.isRead);
+    },
+    setUnreadCount: (state, action) => {
+        state.unreadCount = action.payload;
+    },
+    addNotification: (state, action) => {
+      const newNotif = { ...action.payload, isRead: false };
+      state.allNotifications.unshift(newNotif);
+      if (newNotif.type === 'like') {
+        state.likeNotification.push(newNotif);
+      } else if (newNotif.type === 'comment') {
+        state.commentNotification.push(newNotif);
       }
     },
-    setCommentNotification: (state, action) => {
-      const notification = { ...action.payload, read: false, timestamp: Date.now() };
-      state.commentNotification.push(notification);
-      state.allNotifications.unshift(notification); // Add to history at the beginning
-    },
     markNotificationsAsRead: (state) => {
-      // Clear unread counts but keep history
       state.likeNotification = [];
       state.commentNotification = [];
-      // Mark all in history as read
-      state.allNotifications = state.allNotifications.map(notif => ({ ...notif, read: true }));
+      state.unreadCount = 0;
+      state.allNotifications = state.allNotifications.map(notif => ({ ...notif, isRead: true }));
     },
     clearLikeNotifications: (state) => {
       state.likeNotification = [];
@@ -47,16 +51,20 @@ const rtnSlice = createSlice({
       state.likeNotification = [];
       state.commentNotification = [];
       state.allNotifications = [];
+      state.isFetched = false;
     }
   }
 });
 
 export const { 
+  setNotifications,
+  addNotification,
   setLikeNotification, 
   setCommentNotification,
   markNotificationsAsRead,
   clearLikeNotifications,
   clearCommentNotifications,
-  clearAllNotifications
+  clearAllNotifications,
+  setUnreadCount
 } = rtnSlice.actions;
 export default rtnSlice.reducer;

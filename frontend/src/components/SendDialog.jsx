@@ -17,26 +17,28 @@ const SendDialog = ({ open, setOpen }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className="max-w-md p- space-y14"
+        className="max-w-md p-0 border-[#262626] bg-[#121212] overflow-hidden rounded-xl shadow-2xl"
         onInteractOutside={() => setOpen(false)}
       >
-        <h2 className="text-lg font-semibold">Send to</h2>
-        <div className="flex flex-col gap-4 max-h-96 overflow-y-auto">
+        <div className="p-4 border-b border-[#262626] text-center">
+          <h2 className="text-md font-bold text-white">Share</h2>
+        </div>
+        <div className="p-4 flex flex-col gap-4 max-h-[400px] overflow-y-auto scrollbar-hide">
           {suggestedUsers?.map((user) => (
-            <div key={user._id} className="flex items-center justify-between">
+            <div key={user._id} className="flex items-center justify-between hover:bg-[#1a1a1a] p-2 rounded-xl transition-colors">
               <div className="flex gap-3 items-center">
-                <Avatar>
+                <Avatar className="w-10 h-10 border border-[#262626]">
                   <AvatarImage src={user.profilePicture} alt={user.username} />
-                  <AvatarFallback>
-                    <FaRegCircleUser />
-                  </AvatarFallback>
+                  <AvatarFallback className="bg-[#262626]">CN</AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium">{user.username}</span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-white">{user.username}</span>
+                  <span className="text-xs text-gray-500 line-clamp-1">{user.bio || "Social Media Enthusiast"}</span>
+                </div>
               </div>
               <Button
-                variant="outline"
                 onClick={() => handleSend(user._id)}
-                className="text-sm bg-blue-400"
+                className="bg-[#0095F6] hover:bg-[#1877F2] text-white text-xs font-bold px-6 h-8 rounded-lg"
               >
                 Send
               </Button>

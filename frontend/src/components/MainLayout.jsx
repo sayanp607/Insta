@@ -12,7 +12,7 @@ const MainLayout = () => {
       </div>
 
       {/* Main Content - Adjusted padding for mobile/desktop */}
-      <div className="lg:ml-[15%] pb-20 lg:pb-0">
+      <div className="lg:ml-[18%] pb-20 lg:pb-0">
         <Outlet />
       </div>
 
