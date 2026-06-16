@@ -46,10 +46,10 @@ const SuggestedUsers = () => {
   };
 
   return (
-    <div className="my-10">
-      <div className="flex items-center justify-between text-sm">
-        <h1 className="font-semibold text-gray-600">Suggested for you</h1>
-        <span className="font-medium cursor-pointer">See All</span>
+    <div className="my-6">
+      <div className="flex items-center justify-between text-sm mb-6">
+        <h1 className="font-bold text-gray-500">Suggested for you</h1>
+        <span className="font-bold cursor-pointer text-white hover:text-gray-400 transition-colors">See All</span>
       </div>
       {suggestedUsers.map((user) => {
         const isFollowing = loggedInUser?.following?.some(
@@ -58,30 +58,34 @@ const SuggestedUsers = () => {
         return (
           <div
             key={user._id}
-            className="flex items-center justify-between my-5"
+            className="flex items-center justify-between my-4 transition-all duration-200 hover:bg-[#1a1a1a] p-2 rounded-xl -mx-2"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Link to={`/profile/${user?._id}`}>
-                <Avatar>
+                <Avatar className="w-10 h-10 border border-[#262626]">
                   <AvatarImage src={user?.profilePicture} alt="post_image" />
-                  <AvatarFallback>CN</AvatarFallback>
+                  <AvatarFallback className="bg-[#262626]">CN</AvatarFallback>
                 </Avatar>
               </Link>
-              <div>
-                <h1 className="font-semibold text-sm">
+              <div className="flex flex-col">
+                <h1 className="font-bold text-sm text-white hover:text-gray-400 transition-colors">
                   <Link to={`/profile/${user?._id}`}>{user?.username}</Link>
                 </h1>
-                <span className="text-gray-600 text-sm">
-                  {user?.bio || "Bio here..."}
+                <span className="text-gray-500 text-xs line-clamp-1">
+                  {user?.bio || "Social Media Enthusiast"}
                 </span>
               </div>
             </div>
-            <span
+            <button
               onClick={() => followOrUnfollowHandler(user._id)}
-              className="text-[#3BADF8] text-xs font-bold cursor-pointer hover:text-[#3495d6]"
+              className={`text-xs font-bold transition-all px-3 py-1 rounded-lg ${
+                isFollowing 
+                ? "bg-[#262626] text-white hover:bg-[#333]" 
+                : "text-[#0095F6] hover:text-white"
+              }`}
             >
-              {isFollowing ? "Following" : "Follow"}
-            </span>
+              {isFollowing ? "Following" : (user?.isFollower ? "Follow Back" : "Follow")}
+            </button>
           </div>
         );
       })}

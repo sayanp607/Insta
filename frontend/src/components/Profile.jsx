@@ -5,12 +5,17 @@ import { Link, useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { AtSign, Heart, MessageCircle } from "lucide-react";
+import { AtSign, Heart, MessageCircle, Lock } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { setUserProfile, setAuthUser } from "@/redux/authSlice";
 import { API_BASE_URL } from "@/main";
 import FollowersDialog from "./FollowersDialog";
+import ProfilePhotoModal from "./post-upload/ProfilePhotoModal";
+import useGetHighlights from "@/hooks/useGetHighlights";
+import StoryViewer from "./stories/StoryViewer";
+import { getSocket } from "@/socketInstance,";
+import { Plus } from "lucide-react";
 
 const Profile = () => {
   const params = useParams();
@@ -19,16 +24,37 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState("posts");
   const [showFollowersDialog, setShowFollowersDialog] = useState(false);
   const [showFollowingDialog, setShowFollowingDialog] = useState(false);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const [selectedHighlightIndex, setSelectedHighlightIndex] = useState(null);
+  const { highlights } = useGetHighlights(userId);
   const dispatch = useDispatch();
 
   const { userProfile, user } = useSelector((store) => store.auth);
+  const socket = getSocket();
+
+  React.useEffect(() => {
+    if (socket) {
+      const handleNotification = (notif) => {
+        if ((notif.type === 'follow' || notif.type === 'follow_declined') && notif.sender._id === userId) {
+          // Re-fetch profile data
+          axios.get(`${API_BASE_URL}/api/v1/user/${userId}/profile`, { withCredentials: true })
+            .then(res => {
+              if (res.data.success) {
+                dispatch(setUserProfile(res.data.user));
+              }
+            });
+        }
+      };
+      socket.on('notification', handleNotification);
+      return () => socket.off('notification', handleNotification);
+    }
+  }, [socket, userId, dispatch]);
 
   const isLoggedInUserProfile = user?._id === userProfile?._id;
 
   // Convert both to strings for reliable comparison
-  const isFollowing = user?.following?.some(
-    (id) => String(id) === String(userProfile?._id)
-  );
+  const isFollowing = userProfile?.isFollowing;
+  const isRequested = userProfile?.isRequested;
 
   const handleTabChange = (tab) => {
     setActiveTab(tab);
@@ -37,36 +63,21 @@ const Profile = () => {
   const followOrUnfollowHandler = async () => {
     try {
       const res = await axios.post(
-        `${API_BASE_URL}/api/v1/user/followorunfollow/${userProfile?._id}`,
+        `${API_BASE_URL}/api/v1/user/followorunfollow/${userId}`,
         {},
         { withCredentials: true }
       );
       if (res.data.success) {
-        // Update logged-in user's following array
-        const updatedUser = {
-          ...user,
-          following: isFollowing
-            ? user.following.filter(
-                (id) => String(id) !== String(userProfile._id)
-              )
-            : [...user.following, userProfile._id],
-        };
-        dispatch(setAuthUser(updatedUser));
-
-        // Update userProfile followers count
+        // Update userProfile state locally
+        const currentFollowersCount = userProfile?.followersCount ?? userProfile?.followers?.length ?? 0;
         const updatedUserProfile = {
           ...userProfile,
-          followers: isFollowing
-            ? userProfile.followers.filter(
-                (follower) =>
-                  String(
-                    typeof follower === "object" ? follower._id : follower
-                  ) !== String(user._id)
-              )
-            : [...userProfile.followers, user._id],
+          isFollowing: res.data.isFollowing,
+          isRequested: res.data.isRequested,
+          followersCount: res.data.isFollowing ? currentFollowersCount + 1 : (isFollowing ? currentFollowersCount - 1 : currentFollowersCount)
         };
         dispatch(setUserProfile(updatedUserProfile));
-
+        
         toast.success(res.data.message);
       }
     } catch (error) {
@@ -74,15 +85,36 @@ const Profile = () => {
       toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
+  const isRestricted = userProfile?.isPrivate && !isLoggedInUserProfile && !isFollowing;
+
+  const handleFollowersClick = () => {
+    if (isRestricted) {
+      toast.error("This account is private. Follow them to see their followers.");
+      return;
+    }
+    setShowFollowersDialog(true);
+  };
+
+  const handleFollowingClick = () => {
+    if (isRestricted) {
+      toast.error("This account is private. Follow them to see who they follow.");
+      return;
+    }
+    setShowFollowingDialog(true);
+  };
+
   const displayedPost =
     activeTab === "posts" ? userProfile?.posts : userProfile?.bookmarks;
 
   return (
     <div className="flex max-w-5xl justify-center mx-auto pl-10">
-      <div className="flex flex-col gap-20 p-8">
+      <div className="flex flex-col gap-20 p-8 w-full">
         <div className="grid grid-cols-2">
           <section className="flex items-center justify-center">
-            <Avatar className="h-32 w-32">
+            <Avatar 
+              className={`h-32 w-32 ${isLoggedInUserProfile ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+              onClick={() => isLoggedInUserProfile && setShowPhotoModal(true)}
+            >
               <AvatarImage
                 src={userProfile?.profilePicture}
                 alt="profilephoto"
@@ -93,137 +125,164 @@ const Profile = () => {
           <section>
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-2">
-                <span>{userProfile?.username}</span>
+                <span className="font-bold text-lg">{userProfile?.username}</span>
                 {isLoggedInUserProfile ? (
                   <>
                     <Link to="/account/edit">
                       <Button
                         variant="secondary"
-                        className="hover:bg-gray-200 h-8"
+                        className="hover:bg-[#262626] bg-[#1a1a1a] text-white border border-[#363636] h-8"
                       >
                         Edit profile
                       </Button>
                     </Link>
-                    <Button
-                      variant="secondary"
-                      className="hover:bg-gray-200 h-8"
-                    >
-                      View archive
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className="hover:bg-gray-200 h-8"
-                    >
-                      Ad tools
-                    </Button>
                   </>
                 ) : isFollowing ? (
                   <>
-                    <Button
+                    <button
                       onClick={followOrUnfollowHandler}
-                      variant="secondary"
-                      className="h-8"
+                      className="bg-[#262626] hover:bg-[#363636] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200"
                     >
-                      Unfollow
-                    </Button>
-                    <Button variant="secondary" className="h-8">
+                      Following
+                    </button>
+                    <button className="bg-[#262626] hover:bg-[#363636] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200">
                       Message
-                    </Button>
+                    </button>
                   </>
-                ) : (
-                  <Button
+                ) : isRequested ? (
+                  <button
                     onClick={followOrUnfollowHandler}
-                    className="bg-[#0095F6] hover:bg-[#3192d2] h-8"
+                    className="bg-[#262626] hover:bg-[#363636] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200"
                   >
-                    Follow
-                  </Button>
+                    Requested
+                  </button>
+                ) : (
+                  <button
+                    onClick={followOrUnfollowHandler}
+                    className="bg-[#0095F6] hover:bg-[#1877F2] text-white px-8 py-2 rounded-lg font-bold text-sm transition-all duration-200 shadow-md shadow-blue-500/20"
+                  >
+                    {userProfile?.isFollower ? "Follow Back" : "Follow"}
+                  </button>
                 )}
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-8">
                 <p>
-                  <span className="font-semibold">
-                    {userProfile?.posts.length}{" "}
+                  <span className="font-bold">
+                    {userProfile?.postsCount !== undefined ? userProfile.postsCount : userProfile?.posts?.length || 0}{" "}
                   </span>
                   posts
                 </p>
                 <p
-                  onClick={() => setShowFollowersDialog(true)}
-                  className="cursor-pointer hover:text-gray-700"
+                  onClick={handleFollowersClick}
+                  className="cursor-pointer hover:opacity-70 transition-opacity"
                 >
-                  <span className="font-semibold">
-                    {userProfile?.followers.length}{" "}
+                  <span className="font-bold">
+                    {userProfile?.followersCount !== undefined ? userProfile.followersCount : userProfile?.followers?.length || 0}{" "}
                   </span>
                   followers
                 </p>
                 <p
-                  onClick={() => setShowFollowingDialog(true)}
-                  className="cursor-pointer hover:text-gray-700"
+                  onClick={handleFollowingClick}
+                  className="cursor-pointer hover:opacity-70 transition-opacity"
                 >
-                  <span className="font-semibold">
-                    {userProfile?.following.length}{" "}
+                  <span className="font-bold">
+                    {userProfile?.followingCount !== undefined ? userProfile.followingCount : userProfile?.following?.length || 0}{" "}
                   </span>
                   following
                 </p>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="font-semibold whitespace-pre-wrap">
-                  {userProfile?.bio || "bio here..."}
+                <span className="font-semibold text-white">
+                  {userProfile?.bio || "No bio yet"}
                 </span>
-                <Badge className="w-fit" variant="secondary">
-                  <AtSign />{" "}
-                  <span className="pl-1">{userProfile?.username}</span>{" "}
-                </Badge>
+                <div className="flex items-center gap-1 text-gray-500 text-sm">
+                  <AtSign size={14} /> 
+                  <span>{userProfile?.username}</span>
+                </div>
               </div>
             </div>
           </section>
         </div>
-        <div className="border-t border-t-gray-200">
-          <div className="flex items-center justify-center gap-10 text-sm">
-            <span
-              className={`py-3 cursor-pointer ${
-                activeTab === "posts" ? "font-bold" : ""
-              }`}
-              onClick={() => handleTabChange("posts")}
-            >
-              POSTS
-            </span>
-            <span
-              className={`py-3 cursor-pointer ${
-                activeTab === "saved" ? "font-bold" : ""
-              }`}
-              onClick={() => handleTabChange("saved")}
-            >
-              SAVED
-            </span>
-            <span className="py-3 cursor-pointer">REELS</span>
-            <span className="py-3 cursor-pointer">TAGS</span>
+
+        {/* Highlights Section (Hidden if restricted) */}
+        {!isRestricted && highlights.length > 0 && (
+          <div className="flex gap-6 overflow-x-auto no-scrollbar py-4 border-t border-[#262626]">
+            {highlights.map((h, index) => (
+              <div 
+                key={h._id} 
+                className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]"
+                onClick={() => setSelectedHighlightIndex(index)}
+              >
+                <div className="w-16 h-16 rounded-full border border-[#262626] p-[2px] group-hover:border-gray-500 transition-colors shadow-lg">
+                   <div className="w-full h-full rounded-full overflow-hidden">
+                      <img src={h.cover} alt={h.name} className="w-full h-full object-cover" />
+                   </div>
+                </div>
+                <span className="text-xs text-white font-medium truncate w-full text-center">{h.name}</span>
+              </div>
+            ))}
           </div>
-          <div className="grid grid-cols-3 gap-1">
-            {displayedPost?.map((post) => {
-              return (
-                <div key={post?._id} className="relative group cursor-pointer">
-                  <img
-                    src={post.image}
-                    alt="postimage"
-                    className="rounded-sm my-2 w-full aspect-square object-cover"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="flex items-center text-white space-x-4">
-                      <button className="flex items-center gap-2 hover:text-gray-300">
-                        <Heart />
-                        <span>{post?.likes.length}</span>
-                      </button>
-                      <button className="flex items-center gap-2 hover:text-gray-300">
-                        <MessageCircle />
-                        <span>{post?.comments.length}</span>
-                      </button>
+        )}
+
+        {isRestricted ? (
+          <div className="border-t border-[#262626] flex flex-col items-center justify-center py-20 bg-[#0a0a0a] rounded-b-xl">
+             <div className="p-6 border-2 border-[#262626] rounded-full mb-6">
+                <Lock size={48} className="text-gray-400" />
+             </div>
+             <h1 className="text-xl font-bold text-white mb-2">This Account is Private</h1>
+             <p className="text-gray-500 max-w-sm text-center">
+                Follow this account to see their photos and videos.
+             </p>
+          </div>
+        ) : (
+          <div className="border-t border-[#262626]">
+            <div className="flex items-center justify-center gap-10 text-xs font-bold tracking-widest text-gray-500">
+              <span
+                className={`py-3 cursor-pointer flex items-center gap-1 border-t ${
+                  activeTab === "posts" ? "text-white border-white" : "border-transparent"
+                }`}
+                onClick={() => handleTabChange("posts")}
+              >
+                POSTS
+              </span>
+              {isLoggedInUserProfile && (
+                <span
+                  className={`py-3 cursor-pointer flex items-center gap-1 border-t ${
+                    activeTab === "saved" ? "text-white border-white" : "border-transparent"
+                  }`}
+                  onClick={() => handleTabChange("saved")}
+                >
+                  SAVED
+                </span>
+              )}
+            </div>
+            <div className="grid grid-cols-3 gap-1 md:gap-4 mt-4">
+              {displayedPost?.map((post) => {
+                return (
+                  <div key={post?._id} className="relative aspect-square group cursor-pointer overflow-hidden rounded-sm md:rounded-md">
+                    <img
+                      src={post.image}
+                      alt="postimage"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex items-center text-white space-x-6 font-bold">
+                        <div className="flex items-center gap-2">
+                          <Heart className="fill-white" size={20} />
+                          <span>{post?.likes.length}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MessageCircle className="fill-white" size={20} />
+                          <span>{post?.comments.length}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Followers Dialog */}
@@ -234,13 +293,27 @@ const Profile = () => {
         title="Followers"
       />
 
-      {/* Following Dialog */}
       <FollowersDialog
         open={showFollowingDialog}
         onOpenChange={setShowFollowingDialog}
         users={userProfile?.following}
         title="Following"
       />
+
+      <ProfilePhotoModal 
+        open={showPhotoModal}
+        onOpenChange={setShowPhotoModal}
+        user={userProfile}
+      />
+
+      {selectedHighlightIndex !== null && (
+        <StoryViewer 
+            open={selectedHighlightIndex !== null}
+            onOpenChange={() => setSelectedHighlightIndex(null)}
+            storyGroups={highlights.map(h => ({ author: userProfile, stories: h.stories }))}
+            initialGroupIndex={selectedHighlightIndex}
+        />
+      )}
     </div>
   );
 };

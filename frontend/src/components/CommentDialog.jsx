@@ -9,7 +9,7 @@ import { FaRegCircleUser } from "react-icons/fa6";
 import Comment from "./Comment";
 import axios from "axios";
 import { toast } from "sonner";
-import { setPosts, setSelectedPost } from "@/redux/postSlice";
+import { setPosts, setSelectedPost, setTargetCommentId } from "@/redux/postSlice";
 import { API_BASE_URL } from "@/main";
 import PropTypes from "prop-types";
 const CommentDialog = ({ open, setOpen }) => {
@@ -77,76 +77,98 @@ const CommentDialog = ({ open, setOpen }) => {
     }
   };
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+            dispatch(setSelectedPost(null));
+            dispatch(setTargetCommentId(null));
+        }
+    }}>
       <DialogContent
         onInteractOutside={() => setOpen(false)}
-        className="max-w-5xl p-0 flex flex-col"
+        className="max-w-5xl p-0 flex flex-col border-[#262626] bg-[#121212] overflow-hidden rounded-xl shadow-2xl h-[80vh]"
       >
-        <div className="flex flex-1">
-          <div className="w-1/2">
+        <div className="flex flex-1 h-full">
+          <div className="hidden md:flex w-3/5 bg-black items-center justify-center border-r border-[#262626]">
             <img
               src={selectedPost?.image}
-              alt=""
-              className="w-full h-full object-cover rounded-l-lg"
+              alt="post_image"
+              className="max-h-full max-w-full object-contain"
             />
           </div>
 
-          <div className="w-1/2 flex flex-col justify-between">
-            <div className="flex items-center justify-between p-4">
+          <div className="w-full md:w-2/5 flex flex-col bg-[#121212]">
+            <div className="flex items-center justify-between p-4 border-b border-[#262626]">
               <div className="flex gap-3 items-center">
-                <Link>
-                  <Avatar>
+                <Link to={`/profile/${selectedPost?.author?._id}`}>
+                  <Avatar className="w-8 h-8 border border-[#262626]">
                     <AvatarImage
                       src={selectedPost?.author?.profilePicture}
-                      alt="@shadcn"
+                      alt="author"
                     />
-                    <AvatarFallback className="text-gray-800">
-                      <FaRegCircleUser />
-                    </AvatarFallback>
+                    <AvatarFallback className="bg-[#262626]">CN</AvatarFallback>
                   </Avatar>
                 </Link>
-                <div>
-                  <Link className="font-semibold text-xs">
+                <div className="flex flex-col">
+                  <Link to={`/profile/${selectedPost?.author?._id}`} className="font-bold text-xs text-white hover:text-gray-400">
                     {selectedPost?.author?.username}
                   </Link>
-                  {/* <span className="text-gray-600 text-sm ml-3">
-                    Bio here....
-                  </span> */}
+                  {selectedPost?.song && (
+                    <span className="text-[10px] text-[#0095F6] animate-pulse">
+                      {selectedPost.song.title}
+                    </span>
+                  )}
                 </div>
               </div>
               <Dialog>
                 <DialogTrigger asChild>
-                  <MoreHorizontal className="cursor-pointer" />
+                  <MoreHorizontal className="cursor-pointer text-gray-400 hover:text-white" size={18} />
                 </DialogTrigger>
-                <DialogContent className="flex flex-col text-sm text-center">
-                  <div className="cursor-pointer w-full text-[#ED4956] font-bold">
-                    Unfollow
-                  </div>
-                  <div>Add to favourites</div>
+                <DialogContent className="flex flex-col text-sm text-center bg-[#121212] border-[#262626] p-0 overflow-hidden max-w-[400px]">
+                  <Button variant="ghost" className="w-full text-[#ED4956] font-bold py-4 border-b border-[#262626] rounded-none hover:bg-[#1a1a1a]">Unfollow</Button>
+                  <Button variant="ghost" className="w-full text-white py-4 rounded-none hover:bg-[#1a1a1a]">Add to favorites</Button>
                 </DialogContent>
               </Dialog>
             </div>
-            <hr />
-            <div className="flex-1 overflow-y-auto max-h-96 p-4">
-              {comment.map((comment) => (
-                <Comment key={comment._id} comment={comment} />
+
+            <div className="flex-1 overflow-y-auto p-4 scrollbar-hide">
+              {/* Post Caption as first comment */}
+              {selectedPost?.caption && (
+                <div className="flex gap-3 mb-6">
+                   <Avatar className="w-8 h-8 border border-[#262626]">
+                    <AvatarImage src={selectedPost?.author?.profilePicture} />
+                    <AvatarFallback className="bg-[#262626]">CN</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm text-white">
+                      <span className="font-bold mr-2">{selectedPost?.author?.username}</span>
+                      {selectedPost?.caption}
+                    </p>
+                    <span className="text-[10px] text-gray-500">1d</span>
+                  </div>
+                </div>
+              )}
+
+              {comment.map((c) => (
+                <Comment key={c._id} comment={c} />
               ))}
             </div>
-            <div className="p-4">
-              <div className="flex items-center gap-2">
+
+            <div className="p-4 border-t border-[#262626]">
+              <div className="flex items-center gap-3">
                 <input
                   type="text"
                   onChange={changeEventHandler}
                   value={text}
                   placeholder="Add a comment..."
-                  className="w-full outline-none border border-gray-400  text-sm p-2 rounded"
+                  className="w-full outline-none bg-transparent text-sm text-white placeholder:text-gray-600 focus:placeholder:text-gray-500"
                 />
                 <Button
                   disabled={!text.trim()}
                   onClick={sendMessageHandler}
-                  variant="outline"
+                  className="bg-transparent hover:bg-transparent text-[#0095F6] hover:text-[#1877F2] font-bold text-sm h-auto p-0"
                 >
-                  Send
+                  Post
                 </Button>
               </div>
             </div>

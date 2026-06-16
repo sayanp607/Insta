@@ -3,6 +3,7 @@ import authSlice from "./authSlice.js";
 import postSlice from "./postSlice.js";
 import chatSlice from "./chatSlice.js";
 import rtnSlice from "./rtnSlice.js";
+import storySlice from "./storySlice.js";
 import {
   persistReducer,
   FLUSH,
@@ -16,7 +17,7 @@ import storage from 'redux-persist/lib/storage'
 
 const persistConfig = {
   key: 'root',
-  version: 3, // Increment version to trigger migration
+  version: 4,
   storage,
   migrate: (state) => {
     // Ensure allNotifications exists in persisted state
@@ -36,7 +37,8 @@ const rootReducer = combineReducers({
   auth: authSlice,
   post: postSlice,
   chat: chatSlice,
-  realTimeNotification: rtnSlice
+  realTimeNotification: rtnSlice,
+  story: storySlice
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

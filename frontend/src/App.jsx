@@ -8,12 +8,8 @@ import {
   disconnectSocket,
   getSocket,
 } from "./socketInstance,";
-import {
-  setOnlineUsers,
-  addUnreadMessage,
-  setMessages,
-} from "./redux/chatSlice";
-import { setLikeNotification, setCommentNotification } from "./redux/rtnSlice";
+import { addUnreadMessage, setMessages, setOnlineUsers, updateMessageReactions } from "./redux/chatSlice";
+import { addNotification, setNotifications, setUnreadCount } from "./redux/rtnSlice";
 import { setSelectedUser, setSuggestedUsers } from "./redux/authSlice";
 import { setPosts } from "./redux/postSlice";
 import { API_BASE_URL } from "./main";
@@ -30,6 +26,9 @@ import IncomingCallNotification from "./components/IncomingCallNotification";
 import IncomingAudioCallNotification from "./components/IncomingAudioCallNotification";
 import VideoCall from "./components/VideoCall";
 import AudioCall from "./components/AudioCall";
+import Explore from "./components/Explore";
+import Notifications from "./components/Notifications";
+import Reels from "./components/reels/Reels";
 
 const browserRouter = createBrowserRouter([
   {
@@ -69,6 +68,30 @@ const browserRouter = createBrowserRouter([
         element: (
           <ProtectedRoutes>
             <ChatPage />
+          </ProtectedRoutes>
+        ),
+      },
+      {
+        path: "/explore",
+        element: (
+          <ProtectedRoutes>
+            <Explore />
+          </ProtectedRoutes>
+        ),
+      },
+      {
+        path: "/notifications",
+        element: (
+          <ProtectedRoutes>
+            <Notifications />
+          </ProtectedRoutes>
+        ),
+      },
+      {
+        path: "/reels",
+        element: (
+          <ProtectedRoutes>
+            <Reels />
           </ProtectedRoutes>
         ),
       },
@@ -178,41 +201,59 @@ function App() {
         dispatch(setMessages(updatedMessages));
       });
 
+      socket.on("messageReaction", ({ messageId, reactions }) => {
+        dispatch(updateMessageReactions({ messageId, reactions }));
+      });
+
       socket.on("notification", async (notification) => {
         console.log("Received notification:", notification);
-        console.log("Notification type:", notification.type);
+        dispatch(addNotification(notification));
+        
+        // If the server provided a fresh unreadCount from Redis, use it
+        if (notification.unreadCount !== undefined) {
+          dispatch(setUnreadCount(notification.unreadCount));
+        }
+
+        // Show toast notification
+        import("sonner").then(({ toast }) => {
+          if (notification.type === "follow") {
+             toast.success(notification.message || "New follower!");
+          } else if (notification.type === "follow_declined") {
+             toast.error(notification.message || "Follow request declined");
+          } else {
+             toast.info(notification.message || "New notification received");
+          }
+        });
 
         if (notification.type === "comment") {
-          console.log("Processing comment notification");
-          dispatch(setCommentNotification(notification));
-          console.log("Comment notification dispatched to Redux");
-
-          // Show toast notification for comment
-          import("sonner").then(({ toast }) => {
-            toast.success(
-              `${
-                notification.userDetails?.username || "Someone"
-              } commented on your post`
-            );
-          });
-
           // Fetch updated post data to show new comment immediately
           try {
             const res = await axios.get(`${API_BASE_URL}/api/v1/post/all`, {
               withCredentials: true,
             });
             if (res.data.success) {
-              console.log("Updated posts fetched:", res.data.posts.length);
               dispatch(setPosts(res.data.posts));
             }
           } catch (error) {
             console.error("Error fetching updated posts:", error);
           }
-        } else {
-          console.log("Processing like notification");
-          dispatch(setLikeNotification(notification));
         }
       });
+
+      // Fetch notifications globally
+      const fetchNotifications = async () => {
+        try {
+          const res = await axios.get(`${API_BASE_URL}/api/v1/user/notifications`, {
+            withCredentials: true,
+          });
+          if (res.data.success) {
+            dispatch(setNotifications(res.data.notifications));
+          }
+        } catch (error) {
+          console.log("Error fetching notifications:", error);
+        }
+      };
+      fetchNotifications();
 
       // Fetch suggested users globally for video calls
       const fetchSuggestedUsers = async () => {

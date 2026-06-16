@@ -62,51 +62,54 @@ const Login = () => {
     <div className="flex items-center w-screen h-screen justify-center">
       <form
         onSubmit={signupHandler}
-        className="shadow-lg flex flex-col gap-5 p-8"
+        className="glass border border-[#262626] flex flex-col gap-6 p-10 rounded-2xl w-full max-w-md animate-in fade-in duration-500"
       >
-        <div className="my-4">
-          <h1 className="text-center font-bold text-xl">LOGO</h1>
-          <p className="text-sm text-center">
-            login to see photos and videos from your freinds
+        <div className="my-2">
+          <h1 className="text-center font-bold text-3xl mb-2 insta-gradient-text tracking-tight">Instagram</h1>
+          <p className="text-sm text-center text-zinc-500 font-medium">
+            Log in to see photos and videos from your friends.
           </p>
         </div>
 
-        <div>
-          <span className="font-medium">Email</span>
+        <div className="space-y-1.5">
+          <span className="text-xs font-bold text-zinc-300 ml-1 uppercase">Email</span>
           <Input
             type="email"
             name="email"
             value={input.email}
             onChange={changeEventHandler}
-            className="focus-visible:ring-transparent my-2"
+            placeholder="Enter your email"
+            className="focus-visible:ring-[#363636] h-12 rounded-xl bg-[#121212] border-[#262626]"
           />
         </div>
-        <div>
-          <span className="font-medium">Password</span>
+        <div className="space-y-1.5">
+          <span className="text-xs font-bold text-zinc-300 ml-1 uppercase">Password</span>
           <Input
             type="password"
             name="password"
             value={input.password}
             onChange={changeEventHandler}
-            className="focus-visible:ring-transparent my-2"
+            placeholder="Enter your password"
+            className="focus-visible:ring-[#363636] h-12 rounded-xl bg-[#121212] border-[#262626]"
           />
         </div>
         {loading ? (
-          <Button>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin " />
-            Please wait...
+          <Button className="w-full h-12 rounded-xl bg-[#0095F6] text-white font-bold opacity-70">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Signing in...
           </Button>
         ) : (
-          <Button type="submit">Login</Button>
+          <Button type="submit" className="w-full h-12 rounded-xl bg-[#0095F6] hover:bg-[#1877F2] text-white font-bold transition-all shadow-lg shadow-blue-500/10">
+            Login
+          </Button>
         )}
 
-        <span className="text-center">
-          {" "}
-          Don't have an account?{" "}
-          <Link to="/signup" className="text-blue-500">
-            Signup
+        <div className="text-center text-sm pt-4 border-t border-[#262626] mt-2">
+          <span className="text-zinc-500">Don't have an account? </span>
+          <Link to="/signup" className="text-[#0095F6] font-bold hover:underline">
+            Sign up
           </Link>
-        </span>
+        </div>
       </form>
     </div>
   );

@@ -76,13 +76,14 @@ const FollowersDialog = ({ open, onOpenChange, users, title }) => {
         </div>
 
         {/* Users List */}
-        <div className="max-h-[400px] overflow-y-auto px-4 pb-4">
+        <div className="max-h-[450px] overflow-y-auto px-4 pb-4 custom-scrollbar">
           {filteredUsers?.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">No users found</div>
+            <div className="text-center py-10">
+              <p className="text-gray-500 text-sm">No users found</p>
+            </div>
           ) : (
             filteredUsers?.map((user) => {
-              const userId =
-                typeof user === "object" && user._id ? user._id : user;
+              const userId = typeof user === "object" && user._id ? user._id : user;
               const isFollowing = loggedInUser?.following?.some(
                 (id) => String(id) === String(userId)
               );
@@ -90,50 +91,50 @@ const FollowersDialog = ({ open, onOpenChange, users, title }) => {
 
               return (
                 <div
-                  key={user._id}
-                  className="flex items-center justify-between py-3 hover:bg-gray-50 rounded-lg px-2 transition-colors"
+                  key={userId}
+                  className="flex items-center justify-between py-4 px-3 hover:bg-gray-50/80 rounded-xl transition-all duration-200 group"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <Link
-                      to={`/profile/${user._id}`}
+                      to={`/profile/${userId}`}
                       onClick={() => onOpenChange(false)}
+                      className="relative shrink-0"
                     >
-                      <Avatar className="h-11 w-11">
+                      <Avatar className="h-12 w-12 border-2 border-white shadow-sm transition-transform group-hover:scale-105">
                         <AvatarImage
                           src={user?.profilePicture}
                           alt={user?.username}
                         />
-                        <AvatarFallback>
+                        <AvatarFallback className="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-700 font-medium">
                           {user?.username?.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </Link>
-                    <div>
+                    <div className="flex flex-col min-w-0">
                       <Link
-                        to={`/profile/${user._id}`}
+                        to={`/profile/${userId}`}
                         onClick={() => onOpenChange(false)}
                       >
-                        <h1 className="font-semibold text-sm hover:underline">
+                        <span className="font-bold text-[14px] text-gray-900 truncate hover:underline block">
                           {user?.username}
-                        </h1>
+                        </span>
                       </Link>
-                      <span className="text-gray-600 text-xs">
-                        {user?.bio?.substring(0, 30) || "No bio"}
-                        {user?.bio?.length > 30 ? "..." : ""}
+                      <span className="text-gray-500 text-[12px] truncate max-w-[180px]">
+                        {user?.bio || "No bio yet"}
                       </span>
                     </div>
                   </div>
 
                   {!isOwnProfile && (
                     <button
-                      onClick={() => followOrUnfollowHandler(user._id)}
-                      className={`px-4 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      onClick={() => followOrUnfollowHandler(userId)}
+                      className={`px-5 py-2 rounded-lg text-[13px] font-bold transition-all duration-200 active:scale-95 ${
                         isFollowing
-                          ? "bg-gray-200 hover:bg-gray-300 text-black"
-                          : "bg-[#0095F6] hover:bg-[#3192d2] text-white"
+                          ? "bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200"
+                          : "bg-[#0095F6] hover:bg-[#1877F2] text-white shadow-md shadow-blue-500/20"
                       }`}
                     >
-                      {isFollowing ? "Following" : "Follow"}
+                      {isFollowing ? "Following" : (user?.isFollower ? "Follow Back" : "Follow")}
                     </button>
                   )}
                 </div>

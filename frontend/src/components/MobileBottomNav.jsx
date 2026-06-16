@@ -1,4 +1,4 @@
-import { Home, Search, PlusSquare, MessageCircle, Heart } from "lucide-react";
+import { Home, Search, PlusSquare, MessageCircle, Heart, TrendingUp, Video } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -16,7 +16,7 @@ const MobileBottomNav = () => {
   const [open, setOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const { user } = useSelector((store) => store.auth);
-  const { likeNotification, commentNotification, allNotifications } =
+  const { likeNotification, commentNotification, allNotifications, isFetched, unreadCount: serverUnreadCount } =
     useSelector((store) => store.realTimeNotification);
   const { unreadMessages } = useSelector((store) => store.chat);
 
@@ -25,8 +25,8 @@ const MobileBottomNav = () => {
   const comments = commentNotification || [];
   const notifications = allNotifications || [];
 
-  // Count only unread notifications
-  const unreadCount = likes.length + comments.length;
+  // Use the synchronized count from Redis/Redux
+  const unreadCount = isFetched ? serverUnreadCount : 0;
 
   // Count unread messages
   const unreadMessageCount = Object.keys(unreadMessages || {}).length;
@@ -48,6 +48,8 @@ const MobileBottomNav = () => {
 
   const navItems = [
     { icon: Home, path: "/", label: "Home" },
+    { icon: TrendingUp, path: "/explore", label: "Explore" },
+    { icon: Video, path: "/reels", label: "Reels" },
     { icon: Search, path: "/search", label: "Search" },
     { icon: PlusSquare, action: "Create", label: "Create" },
     {
@@ -109,54 +111,7 @@ const MobileBottomNav = () => {
         </div>
       </div>
 
-      {/* Create Post Dialog */}
       <CreatePost open={open} setOpen={setOpen} />
-
-      {/* Notifications Dialog */}
-      <Dialog open={notificationOpen} onOpenChange={setNotificationOpen}>
-        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Notifications</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {notifications.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
-                No notifications yet
-              </p>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification._id}
-                  className="flex items-start gap-3 p-3 hover:bg-gray-50 rounded-lg"
-                >
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage
-                      src={notification.userId?.profilePicture}
-                      alt="avatar"
-                    />
-                    <AvatarFallback>
-                      <FaRegCircleUser />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-sm">
-                      <span className="font-semibold">
-                        {notification.userId?.username}
-                      </span>{" "}
-                      {notification.type === "like"
-                        ? "liked your post"
-                        : "commented on your post"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {new Date(notification.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

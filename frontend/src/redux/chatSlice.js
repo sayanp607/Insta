@@ -6,6 +6,7 @@ const chatSlice = createSlice({
         onlineUsers:[],
         messages:[],
         unreadMessages: {}, // { userId: count }
+        replyingTo: null, // The message being replied to
     },
     reducers:{
         // actions
@@ -36,6 +37,16 @@ const chatSlice = createSlice({
         },
         clearUnreadMessages:(state) => {
             state.unreadMessages = {};
+        },
+        setReplyingTo:(state, action) => {
+            state.replyingTo = action.payload;
+        },
+        updateMessageReactions:(state, action) => {
+            const { messageId, reactions } = action.payload;
+            const message = state.messages.find(m => m._id === messageId);
+            if (message) {
+                message.reactions = reactions;
+            }
         }
     }
 });
@@ -44,6 +55,8 @@ export const {
     setMessages, 
     addUnreadMessage, 
     markMessagesAsRead,
-    clearUnreadMessages
+    clearUnreadMessages,
+    setReplyingTo,
+    updateMessageReactions
 } = chatSlice.actions;
 export default chatSlice.reducer;
