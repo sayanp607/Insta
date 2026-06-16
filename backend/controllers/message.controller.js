@@ -1,3 +1,6 @@
+import mongoose from "mongoose";
+import { User } from "../models/user.model.js";
+
 // Voice message upload controller
 export const sendVoiceMessage = async (req, res) => {
   try {
@@ -51,11 +54,14 @@ export const sendVoiceMessage = async (req, res) => {
     if (voiceMessage) conversation.messages.push(voiceMessage._id);
     await Promise.all([conversation.save(), voiceMessage.save()]);
 
-    // Emit to receiver
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", voiceMessage);
-    }
+    // Socket emit to all participants
+    conversation.participants.forEach(participantId => {
+      if (participantId.toString() === senderId) return;
+      const receiverSocketId = getReceiverSocketId(participantId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("newMessage", voiceMessage);
+      }
+    });
 
     return res.status(201).json({ success: true, newMessage: voiceMessage });
   } catch (error) {
@@ -133,11 +139,14 @@ export const sendFileMessage = async (req, res) => {
     if (fileMessage) conversation.messages.push(fileMessage._id);
     await Promise.all([conversation.save(), fileMessage.save()]);
 
-    // Emit to receiver
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", fileMessage);
-    }
+    // Socket emit to all participants
+    conversation.participants.forEach(participantId => {
+      if (participantId.toString() === senderId) return;
+      const receiverSocketId = getReceiverSocketId(participantId);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("newMessage", fileMessage);
+      }
+    });
 
     return res.status(201).json({ success: true, newMessage: fileMessage });
   } catch (error) {
@@ -169,30 +178,53 @@ import { Message } from "../models/message.model.js";
 export const sendMessage = async (req, res) => {
   try {
     const senderId = req.id;
-    const receiverId = req.params.id;
-    const { textMessage: message } = req.body;
+    const targetId = req.params.id; // This could be a userId or a conversationId (group)
+    const { textMessage: message, replyTo } = req.body;
 
     let conversation = await Conversation.findOne({
-      participants: { $all: [senderId, receiverId] },
+      $or: [
+        { participants: { $all: [senderId, targetId] }, isGroup: false },
+        { _id: targetId, isGroup: true }
+      ]
     });
-    // establish the conversation if not started yet.
-    if (!conversation) {
-      conversation = await Conversation.create({
-        participants: [senderId, receiverId],
-      });
+
+    if (!conversation && !mongoose.Types.ObjectId.isValid(targetId)) {
+        return res.status(400).json({ success: false, message: "Invalid target" });
     }
+
+    if (!conversation) {
+      // Check if targetId is a user to create a new direct conversation
+      const targetUser = await User.findById(targetId);
+      if (targetUser) {
+        conversation = await Conversation.create({
+          participants: [senderId, targetId],
+        });
+      } else {
+        return res.status(404).json({ success: false, message: "Target not found" });
+      }
+    }
+
     const newMessage = await Message.create({
       senderId,
-      receiverId,
+      receiverId: conversation.isGroup ? undefined : targetId,
+      conversationId: conversation._id,
       message,
+      replyTo: replyTo || undefined,
     });
+
+    if (newMessage && replyTo) {
+      await newMessage.populate({
+        path: 'replyTo',
+        populate: { path: 'senderId', select: 'username' }
+      });
+    }
     if (newMessage) conversation.messages.push(newMessage._id);
 
     await Promise.all([conversation.save(), newMessage.save()]);
 
     // implement socket io for real time data transfer
-    const receiverSocketId = getReceiverSocketId(receiverId);
-    console.log('Sending message to receiver:', receiverId);
+    const receiverSocketId = getReceiverSocketId(targetId);
+    console.log('Sending message to receiver:', targetId);
     console.log('Receiver socket ID:', receiverSocketId);
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("newMessage", newMessage);
@@ -207,6 +239,7 @@ export const sendMessage = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 export const getMessage = async (req, res) => {
@@ -215,7 +248,13 @@ export const getMessage = async (req, res) => {
     const receiverId = req.params.id;
     const conversation = await Conversation.findOne({
       participants: { $all: [senderId, receiverId] },
-    }).populate("messages");
+    }).populate({
+      path: "messages",
+      populate: {
+        path: "replyTo",
+        populate: { path: "senderId", select: "username" }
+      }
+    });
     if (!conversation)
       return res.status(200).json({ success: true, messages: [] });
 
@@ -462,5 +501,86 @@ export const unpinMessage = async (req, res) => {
       success: false,
       message: "Failed to unpin message",
     });
+  }
+};
+// React to message
+export const reactToMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const { emoji } = req.body;
+    const userId = req.id;
+
+    const message = await Message.findById(messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+
+    // Check if user already reacted with the same emoji
+    const existingReactionIndex = message.reactions.findIndex(
+      (r) => r.userId.toString() === userId && r.emoji === emoji
+    );
+
+    if (existingReactionIndex > -1) {
+      // Remove reaction
+      message.reactions.splice(existingReactionIndex, 1);
+    } else {
+      // Add or update reaction
+      const userReactionIndex = message.reactions.findIndex(
+        (r) => r.userId.toString() === userId
+      );
+      if (userReactionIndex > -1) {
+        message.reactions[userReactionIndex].emoji = emoji;
+      } else {
+        message.reactions.push({ userId, emoji });
+      }
+    }
+
+    await message.save();
+
+    // Socket emit for real-time reaction update
+    const conversation = await Conversation.findOne({ messages: messageId });
+    if (conversation) {
+      conversation.participants.forEach((participantId) => {
+        const receiverSocketId = getReceiverSocketId(participantId);
+        if (receiverSocketId) {
+          io.to(receiverSocketId).emit("messageReaction", {
+            messageId,
+            reactions: message.reactions,
+          });
+        }
+      });
+    }
+
+    return res.status(200).json({ success: true, reactions: message.reactions });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Reaction failed" });
+  }
+};
+
+// Create Group
+export const createGroup = async (req, res) => {
+  try {
+    const { groupName, participants } = req.body;
+    const adminId = req.id;
+
+    if (!groupName || !participants || participants.length < 1) {
+      return res.status(400).json({ success: false, message: "Invalid group data" });
+    }
+
+    // Add admin to participants if not already there
+    const allParticipants = Array.from(new Set([...participants, adminId]));
+
+    const conversation = await Conversation.create({
+      participants: allParticipants,
+      isGroup: true,
+      groupName,
+      admins: [adminId],
+    });
+
+    return res.status(201).json({ success: true, conversation });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Group creation failed" });
   }
 };

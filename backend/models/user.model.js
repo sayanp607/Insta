@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema(
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
     bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+    isPrivate: { type: Boolean, default: false },
+    followRequests: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true }
 );

@@ -9,6 +9,21 @@ const messageSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Message",
+  },
+  reactions: [
+    {
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      emoji: {
+        type: String,
+      },
+    },
+  ],
   message: {
     type: String,
     required: function() {
