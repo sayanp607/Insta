@@ -255,7 +255,7 @@ export const getSuggestedUsers = async (req, res) => {
         let mlRecommendedUserIds = [];
         
         try {
-            const ML_BASE_URL = process.env.NODE_ENV === "production" ? "https://insta-mfwa.onrender.com" : "http://127.0.0.1:8000";
+            const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
             const mlResponse = await fetch(`${ML_BASE_URL}/recommend_users/${requesterId}?limit=10`);
             if (mlResponse.ok) {
                 const mlData = await mlResponse.json();
