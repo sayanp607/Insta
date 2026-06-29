@@ -82,7 +82,7 @@ const IncomingCallNotification = ({ onAccept, onReject }) => {
   if (!incomingCall) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-[#FAF6F0] bg-opacity-70 z-50 flex items-center justify-center">
       <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 shadow-2xl">
         <div className="flex flex-col items-center">
           {/* Caller Avatar */}
@@ -102,7 +102,7 @@ const IncomingCallNotification = ({ onAccept, onReject }) => {
           </h2>
 
           {/* Call Status */}
-          <p className="text-gray-600 mb-6">Incoming video call...</p>
+          <p className="text-gray-800 mb-6">Incoming video call...</p>
 
           {/* Ringing Animation */}
           <div className="flex gap-1 mb-6">
@@ -121,14 +121,14 @@ const IncomingCallNotification = ({ onAccept, onReject }) => {
           <div className="flex gap-4 w-full">
             <Button
               onClick={handleReject}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white py-6 rounded-full text-lg font-semibold"
+              className="flex-1 bg-red-600 hover:bg-red-700 text-[#1A1A1A] py-6 rounded-full text-lg font-semibold"
             >
               <PhoneOff className="h-6 w-6 mr-2" />
               Decline
             </Button>
             <Button
               onClick={handleAccept}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white py-6 rounded-full text-lg font-semibold"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-[#1A1A1A] py-6 rounded-full text-lg font-semibold"
             >
               <Phone className="h-6 w-6 mr-2" />
               Accept

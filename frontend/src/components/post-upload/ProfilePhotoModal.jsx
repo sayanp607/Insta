@@ -65,15 +65,15 @@ const ProfilePhotoModal = ({ open, onOpenChange, user }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-[#121212] border-[#262626] p-0 overflow-hidden">
-        <DialogHeader className="p-4 border-b border-[#262626]">
-          <DialogTitle className="text-center text-white font-bold text-base">Change Profile Photo</DialogTitle>
+      <DialogContent className="sm:max-w-[425px] bg-[#FAF6F0] border-gray-300 p-0 overflow-hidden">
+        <DialogHeader className="p-4 border-b border-gray-300">
+          <DialogTitle className="text-center text-[#1A1A1A] font-bold text-base">Change Profile Photo</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col items-center">
           {!image ? (
             <div className="py-12 flex flex-col items-center gap-6">
-              <div className="w-24 h-24 rounded-full bg-[#262626] flex items-center justify-center text-gray-400">
+              <div className="w-24 h-24 rounded-full bg-[#F1E8DF] flex items-center justify-center text-gray-600">
                 <Camera size={40} strokeWidth={1} />
               </div>
               <input
@@ -85,7 +85,7 @@ const ProfilePhotoModal = ({ open, onOpenChange, user }) => {
               />
               <label 
                 htmlFor="profile-upload"
-                className="bg-[#0095F6] hover:bg-[#1877F2] text-white px-6 py-2 rounded-lg font-bold cursor-pointer transition-colors"
+                className="bg-[#0095F6] hover:bg-[#1877F2] text-[#1A1A1A] px-6 py-2 rounded-lg font-bold cursor-pointer transition-colors"
               >
                 Upload Photo
               </label>
@@ -97,7 +97,7 @@ const ProfilePhotoModal = ({ open, onOpenChange, user }) => {
             </div>
           ) : (
             <div className="w-full flex flex-col">
-              <div className="relative w-full h-[300px] bg-black">
+              <div className="relative w-full h-[300px] bg-[#FAF6F0]">
                 <Cropper
                   image={image}
                   crop={crop}
@@ -113,7 +113,7 @@ const ProfilePhotoModal = ({ open, onOpenChange, user }) => {
               
               <div className="p-6 space-y-6">
                 <div className="flex items-center gap-4">
-                   <Minus size={16} className="text-gray-400" />
+                   <Minus size={16} className="text-gray-600" />
                    <input
                      type="range"
                      value={zoom}
@@ -121,9 +121,9 @@ const ProfilePhotoModal = ({ open, onOpenChange, user }) => {
                      max={3}
                      step={0.1}
                      onChange={(e) => setZoom(parseFloat(e.target.value))}
-                     className="flex-1 accent-[#0095F6] bg-[#262626] h-1 rounded-lg appearance-none cursor-pointer"
+                     className="flex-1 accent-[#0095F6] bg-[#F1E8DF] h-1 rounded-lg appearance-none cursor-pointer"
                    />
-                   <Plus size={16} className="text-gray-400" />
+                   <Plus size={16} className="text-gray-600" />
                 </div>
 
                 <div className="flex gap-3">
@@ -131,14 +131,14 @@ const ProfilePhotoModal = ({ open, onOpenChange, user }) => {
                     variant="ghost" 
                     onClick={() => setImage(null)}
                     disabled={loading}
-                    className="flex-1 text-white hover:bg-[#262626]"
+                    className="flex-1 text-[#1A1A1A] hover:bg-[#F1E8DF]"
                   >
                     Cancel
                   </Button>
                   <Button 
                     onClick={handleUpload}
                     disabled={loading}
-                    className="flex-1 bg-[#0095F6] hover:bg-[#1877F2] text-white font-bold"
+                    className="flex-1 bg-[#0095F6] hover:bg-[#1877F2] text-[#1A1A1A] font-bold"
                   >
                     {loading ? (
                       <Loader2 size={18} className="animate-spin" />

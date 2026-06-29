@@ -460,7 +460,7 @@ const AudioCall = ({ selectedUser, onClose, incomingCallData }) => {
       {/* Hidden audio element for remote stream */}
       <audio ref={remoteAudioRef} autoPlay />
 
-      <div className="flex flex-col items-center justify-center text-white max-w-md w-full px-6">
+      <div className="flex flex-col items-center justify-center text-[#1A1A1A] max-w-md w-full px-6">
         {/* Avatar */}
         <div className="mb-8">
           <div className="relative">
@@ -472,7 +472,7 @@ const AudioCall = ({ selectedUser, onClose, incomingCallData }) => {
                 }
                 alt="profile"
               />
-              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-4xl">
+              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-[#1A1A1A] text-4xl">
                 {(selectedUser?.username || incomingCallData?.caller?.username)
                   ?.charAt(0)
                   .toUpperCase()}
@@ -491,7 +491,7 @@ const AudioCall = ({ selectedUser, onClose, incomingCallData }) => {
         </h2>
 
         {/* Call Status */}
-        <p className="text-gray-300 mb-8">
+        <p className="text-gray-800 mb-8">
           {isCalling
             ? "Calling..."
             : callAccepted || (incomingCallData && peerConnection)
@@ -509,7 +509,7 @@ const AudioCall = ({ selectedUser, onClose, incomingCallData }) => {
             className={`w-14 h-14 rounded-full ${
               isMuted
                 ? "bg-white text-gray-900"
-                : "bg-white/10 text-white hover:bg-white/20"
+                : "bg-white/10 text-[#1A1A1A] hover:bg-white/20"
             }`}
           >
             {isMuted ? (
@@ -522,7 +522,7 @@ const AudioCall = ({ selectedUser, onClose, incomingCallData }) => {
           {/* End Call Button */}
           <Button
             onClick={endCall}
-            className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-white"
+            className="w-16 h-16 rounded-full bg-red-500 hover:bg-red-600 text-[#1A1A1A]"
           >
             <PhoneOff className="h-7 w-7" />
           </Button>
@@ -535,7 +535,7 @@ const AudioCall = ({ selectedUser, onClose, incomingCallData }) => {
             className={`w-14 h-14 rounded-full ${
               isSpeakerOff
                 ? "bg-white text-gray-900"
-                : "bg-white/10 text-white hover:bg-white/20"
+                : "bg-white/10 text-[#1A1A1A] hover:bg-white/20"
             }`}
           >
             {isSpeakerOff ? (
@@ -547,7 +547,7 @@ const AudioCall = ({ selectedUser, onClose, incomingCallData }) => {
         </div>
 
         {/* Additional Info */}
-        <p className="text-gray-400 text-sm">
+        <p className="text-gray-600 text-sm">
           {peerConnection?.connectionState === "connected"
             ? "Connected"
             : peerConnection?.connectionState === "connecting"

@@ -252,25 +252,48 @@ export const togglePrivacy = async (req, res) => {
 export const getSuggestedUsers = async (req, res) => {
     try {
         const requesterId = req.id;
-        const users = await User.find({ _id: { $ne: requesterId } }).select("-password");
+        let mlRecommendedUserIds = [];
+        
+        try {
+            const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+            const mlResponse = await fetch(`${ML_BASE_URL}/recommend_users/${requesterId}?limit=10`);
+            if (mlResponse.ok) {
+                const mlData = await mlResponse.json();
+                mlRecommendedUserIds = mlData.recommended_user_ids || [];
+            }
+        } catch (mlError) {
+            console.log("ML Service unavailable for suggested users.");
+        }
+
+        let users = [];
+
+        if (mlRecommendedUserIds.length > 0) {
+            // Fetch the recommended users
+            users = await User.find({ _id: { $in: mlRecommendedUserIds } }).select("-password");
+            
+            // Sort to match ML ranking
+            const orderMap = new Map(mlRecommendedUserIds.map((id, index) => [id.toString(), index]));
+            users.sort((a, b) => orderMap.get(a._id.toString()) - orderMap.get(b._id.toString()));
+        }
+
+        // Fallback or if ML array is empty
+        if (users.length === 0) {
+            // Find all other users so the chat sidebar is always populated for testing
+            users = await User.find({ _id: { $ne: requesterId } }).select("-password");
+        }
         
         const suggestedUsers = users.map(u => ({
             ...u.toObject(),
             isFollower: u.following.some(id => id.toString() === requesterId)
         }));
 
-        if (!suggestedUsers || suggestedUsers.length === 0) {
-            return res.status(200).json({
-                success: true,
-                users: []
-            })
-        };
         return res.status(200).json({
             success: true,
-            users: suggestedUsers
-        })
+            users: suggestedUsers || []
+        });
     } catch (error) {
         console.log(error);
+        return res.status(500).json({ success: false, message: "Server error" });
     }
 };
 
@@ -418,7 +441,7 @@ export const declineFollowRequest = async (req, res) => {
             Notification.deleteOne({ receiver: userId, sender: requesterId, type: 'followRequest' })
         ]);
 
-        // Optional: Send notification for decline (Instagram doesn't usually do this, but the user requested it)
+        // Optional: Send notification for decline (Bloom doesn't usually do this, but the user requested it)
         const user = await User.findById(userId);
         const declineNotification = await Notification.create({
             receiver: requesterId,

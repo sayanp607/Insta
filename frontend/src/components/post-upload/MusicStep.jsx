@@ -80,14 +80,14 @@ const MusicStep = ({ selectedSong, songStart, onSongSelect, onStartChange, onNex
   };
 
   return (
-    <div className="flex flex-col h-[500px] bg-[#121212] overflow-hidden rounded-b-xl border-t border-[#262626]">
-      <div className="p-4 border-b border-[#262626]">
+    <div className="flex flex-col h-[500px] bg-[#FAF6F0] overflow-hidden rounded-b-xl border-t border-gray-300">
+      <div className="p-4 border-b border-gray-300">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
           <input 
             type="text" 
             placeholder="Search millions of songs..."
-            className="w-full bg-[#262626] rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none placeholder:text-gray-500 focus:ring-1 ring-[#0095F6] text-white"
+            className="w-full bg-[#F1E8DF] rounded-xl py-2.5 pl-10 pr-4 text-sm outline-none placeholder:text-gray-600 focus:ring-1 ring-[#0095F6] text-[#1A1A1A]"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -97,7 +97,7 @@ const MusicStep = ({ selectedSong, songStart, onSongSelect, onStartChange, onNex
 
       <div className="flex-1 overflow-y-auto p-2 scrollbar-hide">
         {musicResults.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+          <div className="flex flex-col items-center justify-center h-full text-gray-600">
             <Music size={48} strokeWidth={1} className="mb-2 opacity-20" />
             <p className="text-sm">No songs found</p>
           </div>
@@ -107,13 +107,13 @@ const MusicStep = ({ selectedSong, songStart, onSongSelect, onStartChange, onNex
           <div 
             key={m.id}
             onClick={() => handleSongClick(m)}
-            className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${selectedSong?.id === m.id ? 'bg-[#1a1a1a]' : 'hover:bg-[#1a1a1a]'}`}
+            className={`flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${selectedSong?.id === m.id ? 'bg-[#FFFFFF]' : 'hover:bg-[#FFFFFF]'}`}
           >
             <div className="flex items-center gap-3">
               <div className="relative">
-                <img src={m.thumbnail} alt={m.title} className="w-12 h-12 rounded-lg object-cover border border-[#262626]" />
+                <img src={m.thumbnail} alt={m.title} className="w-12 h-12 rounded-lg object-cover border border-gray-300" />
                 {selectedSong?.id === m.id && playing && (
-                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg">
+                   <div className="absolute inset-0 bg-[#FAF6F0]/40 flex items-center justify-center rounded-lg">
                       <div className="flex gap-0.5 h-3 items-end">
                         <div className="w-0.5 bg-white animate-music-bar" style={{animationDelay: '0.1s'}} />
                         <div className="w-0.5 bg-white animate-music-bar" style={{animationDelay: '0.3s'}} />
@@ -123,8 +123,8 @@ const MusicStep = ({ selectedSong, songStart, onSongSelect, onStartChange, onNex
                 )}
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white truncate max-w-[180px]">{m.title}</h3>
-                <p className="text-xs text-gray-500 truncate max-w-[180px]">{m.artist}</p>
+                <h3 className="text-sm font-bold text-[#1A1A1A] truncate max-w-[180px]">{m.title}</h3>
+                <p className="text-xs text-gray-600 truncate max-w-[180px]">{m.artist}</p>
               </div>
             </div>
             {selectedSong?.id === m.id && (
@@ -137,17 +137,17 @@ const MusicStep = ({ selectedSong, songStart, onSongSelect, onStartChange, onNex
       </div>
 
       {selectedSong && (
-        <div className="p-6 bg-[#1a1a1a] border-t border-[#262626] animate-in slide-in-from-bottom duration-300">
+        <div className="p-6 bg-[#FFFFFF] border-t border-gray-300 animate-in slide-in-from-bottom duration-300">
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Music size={16} className="text-[#0095F6]" />
-                <span className="text-xs font-bold text-white line-clamp-1">{selectedSong.artist} - {selectedSong.title}</span>
+                <span className="text-xs font-bold text-[#1A1A1A] line-clamp-1">{selectedSong.artist} - {selectedSong.title}</span>
               </div>
               <span className="text-[10px] bg-[#0095F6]/20 text-[#0095F6] px-2 py-1 rounded-full font-bold">30s Preview</span>
             </div>
             
-            <div className="bg-[#262626] h-1.5 w-full rounded-full overflow-hidden">
+            <div className="bg-[#F1E8DF] h-1.5 w-full rounded-full overflow-hidden">
                <div className="bg-[#0095F6] h-full animate-progress" />
             </div>
           </div>
@@ -159,9 +159,9 @@ const MusicStep = ({ selectedSong, songStart, onSongSelect, onStartChange, onNex
         </div>
       )}
 
-      <div className="p-4 bg-[#121212] border-t border-[#262626] flex justify-between">
-        <Button variant="ghost" onClick={onBack} className="text-white hover:bg-[#262626]">Back</Button>
-        <Button onClick={onNext} className="bg-[#0095F6] hover:bg-[#1877F2] text-white font-bold px-8">Next</Button>
+      <div className="p-4 bg-[#FAF6F0] border-t border-gray-300 flex justify-between">
+        <Button variant="ghost" onClick={onBack} className="text-[#1A1A1A] hover:bg-[#F1E8DF]">Back</Button>
+        <Button onClick={onNext} className="bg-[#0095F6] hover:bg-[#1877F2] text-[#1A1A1A] font-bold px-8">Next</Button>
       </div>
     </div>
   );

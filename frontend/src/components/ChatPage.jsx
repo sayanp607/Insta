@@ -324,10 +324,12 @@ const ChatPage = () => {
         }
       } else {
         setTextMessage(msgText); // Restore on backend failure
+        toast.error("Failed to send: " + (res.data.message || "Unknown error"));
       }
     } catch (error) {
       console.log(error);
       setTextMessage(msgText); // Restore on network error
+      toast.error("Error sending message: " + (error.response?.data?.message || error.message));
     } finally {
       setIsSending(false);
     }
@@ -481,7 +483,7 @@ const ChatPage = () => {
                       toast.error("Failed to create group");
                     }
                   }}
-                  className="bg-blue-600 hover:bg-blue-500 text-white"
+                  className="bg-blue-600 hover:bg-blue-500 text-[#1A1A1A]"
                 >
                   Create Group
                 </Button>
@@ -510,7 +512,7 @@ const ChatPage = () => {
                 <div className="relative">
                   <Avatar className="w-14 h-14 ring-2 ring-transparent group-hover:ring-primary/20 transition-all duration-200">
                     <AvatarImage src={suggestedUser?.profilePicture} className="object-cover" />
-                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white font-bold">
+                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-[#1A1A1A] font-bold">
                       {suggestedUser?.username?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -524,7 +526,7 @@ const ChatPage = () => {
                       {suggestedUser?.username}
                     </span>
                     {unreadCount > 0 && (
-                      <span className="text-[10px] font-bold text-white bg-blue-600 px-2 py-0.5 rounded-full shadow-[0_2px_8px_rgba(37,99,235,0.4)]">
+                      <span className="text-[10px] font-bold text-[#1A1A1A] bg-blue-600 px-2 py-0.5 rounded-full shadow-[0_2px_8px_rgba(37,99,235,0.4)]">
                         {unreadCount > 5 ? "5+" : unreadCount}
                       </span>
                     )}
@@ -570,7 +572,7 @@ const ChatPage = () => {
               </Button>
               <Avatar className="w-10 h-10 ring-2 ring-primary/10 shadow-lg">
                 <AvatarImage src={selectedUser?.profilePicture} alt="profile" className="object-cover" />
-                <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white font-bold">
+                <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-[#1A1A1A] font-bold">
                   {selectedUser?.username?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -669,7 +671,7 @@ const ChatPage = () => {
                       transition={{ delay: i * 0.1 }}
                       onClick={() => sendmsgHandler(selectedUser._id, reply)}
                       disabled={isSending}
-                      className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-white/10 text-white/80 hover:text-white hover:border-white/20 hover:shadow-[0_0_12px_rgba(99,102,241,0.3)] disabled:opacity-50 transition-all duration-200 backdrop-blur-sm"
+                      className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-white/10 text-[#1A1A1A]/80 hover:text-[#1A1A1A] hover:border-white/20 hover:shadow-[0_0_12px_rgba(99,102,241,0.3)] disabled:opacity-50 transition-all duration-200 backdrop-blur-sm"
                     >
                       {reply}
                     </motion.button>
@@ -799,7 +801,7 @@ const ChatPage = () => {
                 size="icon"
                 className={`rounded-full h-10 w-10 transition-all ${
                   textMessage.trim() && !isRecording
-                    ? "bg-blue-600 hover:bg-blue-500 text-white scale-100 translate-x-0"
+                    ? "bg-blue-600 hover:bg-blue-500 text-[#1A1A1A] scale-100 translate-x-0"
                     : "bg-transparent text-muted-foreground/40 scale-90 translate-x-2"
                 }`}
                 disabled={!textMessage.trim() || isRecording || isSending}

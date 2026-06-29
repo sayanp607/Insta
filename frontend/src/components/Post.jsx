@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "sonner";
 import { setPosts, setSelectedPost, setIsGlobalMuted } from "@/redux/postSlice";
+import { setAuthUser, setUserProfile } from "@/redux/authSlice";
 import { Link } from "react-router-dom";
 import SendDialog from "./SendDialog";
 import { API_BASE_URL } from "@/main";
@@ -16,12 +17,13 @@ import PropTypes from "prop-types";
 import { motion } from "framer-motion";
 
 const Post = ({ post }) => {
-  const [commentText, setCommentText] = useState("");
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [opensend, setOpensend] = useState(false);
   const { user } = useSelector((store) => store.auth);
   const { posts, selectedPost, isGlobalMuted } = useSelector((store) => store.post);
+  const [commentText, setCommentText] = useState("");
+  const [isBookmarked, setIsBookmarked] = useState(user?.bookmarks?.includes(post?._id) || false);
+  const [open, setOpen] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
+  const [opensend, setOpensend] = useState(false);
   const [isLiked, setIsLiked] = useState(post.likes?.includes(user?._id) || false);
   const [postLikes, setPostLikes] = useState(post.likes?.length || 0);
   const [comments, setComments] = useState(post.comments || []);
@@ -130,26 +132,32 @@ const Post = ({ post }) => {
   };
 
   const commentHandler = async () => {
+    if (!commentText.trim() || isPosting) return;
+    setIsPosting(true);
+    
     try {
       const res = await axios.post(
         `${API_BASE_URL}/api/v1/post/${post._id}/comment`,
         { text: commentText },
         {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           withCredentials: true,
         }
       );
       if (res.data.success) {
-        const updatedData = [...comments, res.data.comment];
-        setComments(updatedData);
+        const updatedCommentData = [...comments, res.data.comment];
+        setComments(updatedCommentData);
 
         const updatedPostData = posts.map((p) =>
-          p._id === post._id ? { ...p, comments: updatedData } : p
+          p._id === post._id ? { ...p, comments: updatedCommentData } : p
         );
+
         dispatch(setPosts(updatedPostData));
 
         if (selectedPost?._id === post._id) {
-          dispatch(setSelectedPost({ ...selectedPost, comments: updatedData }));
+          dispatch(setSelectedPost({ ...selectedPost, comments: updatedCommentData }));
         }
 
         toast.success(res.data.message);
@@ -157,6 +165,10 @@ const Post = ({ post }) => {
       }
     } catch (error) {
       console.error(error);
+      const errorMessage = error.response?.data?.message || "Failed to add comment";
+      toast.error(errorMessage);
+    } finally {
+      setIsPosting(false);
     }
   };
 
@@ -169,6 +181,21 @@ const Post = ({ post }) => {
       if (res.data.success) {
         toast.success(res.data.message);
         setIsBookmarked((prev) => !prev);
+        
+        // Update Redux state so it persists on refresh
+        const updatedBookmarks = isBookmarked
+          ? user.bookmarks.filter(id => id !== post?._id)
+          : [...(user.bookmarks || []), post?._id];
+          
+        dispatch(setAuthUser({ ...user, bookmarks: updatedBookmarks }));
+
+        if (userProfile && userProfile._id === user._id) {
+          const updatedProfileBookmarks = isBookmarked
+            ? userProfile.bookmarks.filter(p => p._id !== post?._id)
+            : [...(userProfile.bookmarks || []), post];
+            
+          dispatch(setUserProfile({ ...userProfile, bookmarks: updatedProfileBookmarks }));
+        }
       }
     } catch (error) {
       console.log(error);
@@ -177,23 +204,23 @@ const Post = ({ post }) => {
 
   return (
     <div ref={postRef} className="my-8 w-full max-w-md mx-auto animate-in fade-in zoom-in duration-300">
-      <div className="bg-[#121212] border border-[#262626] rounded-xl overflow-hidden shadow-2xl transition-all hover:shadow-[0_0_20px_rgba(255,255,255,0.05)]">
+      <div className="bg-[#FFADAD]/90 backdrop-blur-md border border-gray-300 rounded-xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 hover:border-red-400 transition-all duration-500 ease-out">
         {/* Post Header */}
         <div className="flex items-center justify-between p-3">
           <div className="flex items-center gap-3">
             <Link to={`/profile/${post.author?._id}`}>
-              <Avatar className="w-10 h-10 border border-[#262626] hover:scale-105 transition-transform duration-200">
+              <Avatar className="w-10 h-10 border border-gray-300 hover:scale-105 transition-transform duration-200">
                 <AvatarImage src={post.author?.profilePicture} alt="post_image" />
-                <AvatarFallback className="bg-[#262626]">CN</AvatarFallback>
+                <AvatarFallback className="bg-[#F1E8DF]">CN</AvatarFallback>
               </Avatar>
             </Link>
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
-                <Link to={`/profile/${post.author?._id}`} className="font-bold text-sm text-white hover:text-gray-400 transition-colors">
+                <Link to={`/profile/${post.author?._id}`} className="font-bold text-sm text-[#1A1A1A] hover:text-gray-600 transition-colors">
                   {post.author?.username}
                 </Link>
                 <div className="w-1 h-1 bg-gray-500 rounded-full" />
-                <span className="text-gray-500 text-xs">1d</span>
+                <span className="text-gray-600 text-xs">1d</span>
               </div>
               {post.song && (
                 <div className="flex items-center gap-2 mt-1 px-2 py-0.5 bg-[#0095F6]/10 rounded-full w-fit border border-[#0095F6]/20">
@@ -210,19 +237,19 @@ const Post = ({ post }) => {
           </div>
           <Dialog>
             <DialogTrigger asChild>
-              <MoreHorizontal className="cursor-pointer text-gray-400 hover:text-white transition-colors" />
+              <MoreHorizontal className="cursor-pointer text-gray-600 hover:text-[#1A1A1A] transition-colors" />
             </DialogTrigger>
-            <DialogContent className="flex flex-col items-center text-sm text-center bg-[#121212] border-[#262626] text-white p-0 overflow-hidden max-w-[400px]">
+            <DialogContent className="flex flex-col items-center text-sm text-center bg-[#FAF6F0] border-gray-300 text-[#1A1A1A] p-0 overflow-hidden max-w-[400px]">
               {post.author?._id !== user?._id && (
-                 <Button variant="ghost" className="w-full text-[#ED4956] font-bold py-4 border-b border-[#262626] rounded-none hover:bg-[#1a1a1a]">
+                 <Button variant="ghost" className="w-full text-[#ED4956] font-bold py-4 border-b border-gray-300 rounded-none hover:bg-[#FFFFFF]">
                    Unfollow
                  </Button>
               )}
-              <Button onClick={bookmarkHandler} variant="ghost" className="w-full py-4 border-b border-[#262626] rounded-none hover:bg-[#1a1a1a]">
+              <Button onClick={bookmarkHandler} variant="ghost" className="w-full py-4 border-b border-gray-300 rounded-none hover:bg-[#FFFFFF]">
                 Add to favorites
               </Button>
               {user && user?._id === post.author?._id && (
-                <Button onClick={deletePostHandler} variant="ghost" className="w-full py-4 border-b border-[#262626] rounded-none hover:bg-[#1a1a1a] text-[#ED4956]">
+                <Button onClick={deletePostHandler} variant="ghost" className="w-full py-4 border-b border-gray-300 rounded-none hover:bg-[#FFFFFF] text-[#ED4956]">
                   Delete
                 </Button>
               )}
@@ -231,7 +258,7 @@ const Post = ({ post }) => {
         </div>
 
         {/* Post Image with Playback controls */}
-        <div className="relative group aspect-square overflow-hidden bg-black flex items-center justify-center">
+        <div className="relative group aspect-square overflow-hidden bg-[#FAF6F0] flex items-center justify-center">
           {post.mediaType === "video" ? (
             <video
               src={post.image}
@@ -263,7 +290,7 @@ const Post = ({ post }) => {
               />
               <button 
                 onClick={toggleMute}
-                className="absolute bottom-4 right-4 p-2 bg-black/50 backdrop-blur-md rounded-full text-white border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute bottom-4 right-4 p-2 bg-[#FAF6F0]/50 backdrop-blur-md rounded-full text-[#1A1A1A] border border-white/20 opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 {isGlobalMuted ? <VolumeX size={18} /> : <Volume2 size={18} className="text-[#0095F6]" />}
               </button>
@@ -300,7 +327,7 @@ const Post = ({ post }) => {
                   <Heart
                     onClick={likeOrdislikehandler}
                     size={"24"}
-                    className="cursor-pointer text-white hover:text-gray-400 transition-colors"
+                    className="cursor-pointer text-[#1A1A1A] hover:text-gray-600 transition-colors"
                   />
                 </motion.div>
               )}
@@ -310,25 +337,25 @@ const Post = ({ post }) => {
                   setOpen(true);
                 }}
                 size={"24"}
-                className="cursor-pointer text-white hover:text-gray-400 hover:scale-110 transition-transform"
+                className="cursor-pointer text-[#1A1A1A] hover:text-gray-600 hover:scale-110 transition-transform"
               />
-              <Send size={"24"} className="cursor-pointer text-white hover:text-gray-400 hover:scale-110 transition-transform" onClick={() => setOpensend(true)} />
+              <Send size={"24"} className="cursor-pointer text-[#1A1A1A] hover:text-gray-600 hover:scale-110 transition-transform" onClick={() => setOpensend(true)} />
               <SendDialog open={opensend} setOpen={setOpensend} />
             </div>
             <Bookmark
               onClick={bookmarkHandler}
               size={"24"}
-              className={`cursor-pointer ${isBookmarked ? 'text-white fill-current' : 'text-gray-400'} hover:text-white hover:scale-110 transition-transform`}
+              className={`cursor-pointer ${isBookmarked ? 'text-[#1A1A1A] fill-current' : 'text-gray-600'} hover:text-[#1A1A1A] hover:scale-110 transition-transform`}
             />
           </div>
 
-          <span className="font-bold text-sm block mb-2 text-white">{postLikes} likes</span>
+          <span className="font-bold text-sm block mb-2 text-[#1A1A1A]">{postLikes} likes</span>
 
           <div className="text-sm">
-            <Link to={`/profile/${post.author?._id}`} className="font-bold mr-2 text-white hover:underline">
+            <Link to={`/profile/${post.author?._id}`} className="font-bold mr-2 text-[#1A1A1A] hover:underline">
               {post.author?.username || "user"}
             </Link>
-            <span className="text-gray-300">{post.caption}</span>
+            <span className="text-gray-800">{post.caption}</span>
           </div>
 
           {comments.length > 0 && (
@@ -337,7 +364,7 @@ const Post = ({ post }) => {
                 dispatch(setSelectedPost(post));
                 setOpen(true);
               }}
-              className="mt-2 block cursor-pointer text-gray-500 text-sm hover:text-gray-400 transition-colors"
+              className="mt-2 block cursor-pointer text-gray-600 text-sm hover:text-gray-600 transition-colors"
             >
               View all {comments.length} comments
             </span>
@@ -345,21 +372,27 @@ const Post = ({ post }) => {
         </div>
 
         {/* Comment Input */}
-        <div className="px-3 pb-3 border-t border-[#262626] pt-3 flex items-center gap-2">
+        <div className="px-3 pb-3 border-t border-gray-300 pt-3 flex items-center gap-2">
           <input
             type="text"
             placeholder="Add a comment..."
             value={commentText}
             onChange={changeEventHandler}
-            className="outline-none text-sm w-full bg-transparent text-white placeholder:text-gray-600 focus:placeholder:text-gray-500"
+            className="outline-none text-sm w-full bg-transparent text-[#1A1A1A] placeholder:text-gray-800 focus:placeholder:text-gray-600"
           />
           {commentText && (
-            <span
-              onClick={commentHandler}
-              className="text-[#0095F6] font-bold text-sm cursor-pointer hover:text-[#1877F2] transition-colors"
-            >
-              Post
-            </span>
+            isPosting ? (
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 animate-pulse font-bold text-sm whitespace-nowrap">
+                AI Processing...
+              </span>
+            ) : (
+              <span
+                onClick={commentHandler}
+                className="text-[#0095F6] font-bold text-sm cursor-pointer hover:text-[#1877F2] transition-colors"
+              >
+                Post
+              </span>
+            )
           )}
         </div>
       </div>

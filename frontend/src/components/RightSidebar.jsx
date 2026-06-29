@@ -11,21 +11,21 @@ const RightSidebar = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <Link to={`/profile/${user?._id}`}>
-            <Avatar className="w-12 h-12 border-2 border-[#262626] hover:scale-105 transition-transform duration-200">
+            <Avatar className="w-12 h-12 border-2 border-gray-300 hover:scale-105 transition-transform duration-200">
               <AvatarImage src={user?.profilePicture} alt="post_image" />
-              <AvatarFallback className="bg-[#262626]">CN</AvatarFallback>
+              <AvatarFallback className="bg-[#F1E8DF]">CN</AvatarFallback>
             </Avatar>
           </Link>
           <div>
-            <h1 className="font-bold text-sm text-white hover:text-gray-400 transition-colors">
+            <h1 className="font-bold text-sm text-[#1A1A1A] hover:text-gray-600 transition-colors">
               <Link to={`/profile/${user?._id}`}>{user?.username}</Link>
             </h1>
-            <span className="text-gray-500 text-xs line-clamp-1">
+            <span className="text-gray-600 text-xs line-clamp-1">
               {user?.bio || "Social Media Enthusiast"}
             </span>
           </div>
         </div>
-        <button className="text-[#0095F6] text-xs font-bold hover:text-white transition-colors">
+        <button className="text-[#0095F6] text-xs font-bold hover:text-[#1A1A1A] transition-colors">
           Switch
         </button>
       </div>

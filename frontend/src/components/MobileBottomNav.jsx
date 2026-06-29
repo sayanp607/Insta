@@ -68,7 +68,7 @@ const MobileBottomNav = () => {
 
   return (
     <>
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 bg-[#FAF6F0] border-t border-gray-300 z-50 lg:hidden">
         <div className="flex items-center justify-around py-2 px-4">
           {navItems.map((item, index) => {
             const Icon = item.icon;
@@ -78,15 +78,15 @@ const MobileBottomNav = () => {
               <button
                 key={index}
                 onClick={() => handleNavigation(item.path, item.action)}
-                className="relative flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                className="relative flex flex-col items-center justify-center p-2 rounded-lg hover:bg-[#FFFFFF] transition-colors"
               >
                 <Icon
                   className={`h-6 w-6 ${
-                    active ? "text-black" : "text-gray-600"
+                    active ? "text-[#F094A6] filter drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]" : "text-gray-600"
                   }`}
                 />
                 {item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+                  <span className="absolute -top-1 -right-1 bg-red-600 text-[#1A1A1A] text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
                     {item.badge}
                   </span>
                 )}
@@ -97,8 +97,8 @@ const MobileBottomNav = () => {
           {/* Profile Avatar */}
           <button
             onClick={() => navigate(`/profile/${user?._id}`)}
-            className={`relative flex flex-col items-center justify-center p-2 rounded-lg hover:bg-gray-100 transition-colors ${
-              isActive(`/profile/${user?._id}`) ? "ring-2 ring-black" : ""
+            className={`relative flex flex-col items-center justify-center p-2 rounded-lg hover:bg-[#FFFFFF] transition-colors ${
+              isActive(`/profile/${user?._id}`) ? "ring-2 ring-[#F094A6] ring-offset-2 ring-offset-[#FAF6F0]" : ""
             }`}
           >
             <Avatar className="w-6 h-6">

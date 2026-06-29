@@ -32,7 +32,7 @@ const PinMessageDialog = ({ message, onClose, onPinSuccess }) => {
     <>
       {/* Backdrop overlay */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-[#FAF6F0]/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={onClose}
       >
         {/* Modal */}
@@ -44,20 +44,20 @@ const PinMessageDialog = ({ message, onClose, onPinSuccess }) => {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-full flex items-center justify-center">
-                <Pin className="w-6 h-6 text-white" />
+                <Pin className="w-6 h-6 text-[#1A1A1A]" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
                   Pin Message
                 </h3>
-                <p className="text-sm text-gray-500">Choose duration</p>
+                <p className="text-sm text-gray-600">Choose duration</p>
               </div>
             </div>
             <button
               onClick={onClose}
               className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-600" />
             </button>
           </div>
 
@@ -101,7 +101,7 @@ const PinMessageDialog = ({ message, onClose, onPinSuccess }) => {
                       {days} Days
                     </span>
                   </div>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-gray-600">
                     Until{" "}
                     {new Date(
                       Date.now() + days * 24 * 60 * 60 * 1000
@@ -125,7 +125,7 @@ const PinMessageDialog = ({ message, onClose, onPinSuccess }) => {
             <Button
               onClick={handlePin}
               disabled={loading}
-              className="flex-1 h-11 rounded-xl font-medium bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-white shadow-lg"
+              className="flex-1 h-11 rounded-xl font-medium bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-600 hover:to-orange-700 text-[#1A1A1A] shadow-lg"
             >
               <Pin className="w-4 h-4 mr-2" />
               {loading ? "Pinning..." : "Pin Message"}

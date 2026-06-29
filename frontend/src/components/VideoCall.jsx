@@ -618,9 +618,9 @@ const VideoCall = ({ selectedUser, onClose, incomingCallData }) => {
   }, [localStream, peerConnection]);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col">
+    <div className="fixed inset-0 bg-[#FAF6F0] bg-opacity-90 z-50 flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center p-4 bg-gray-900 text-white">
+      <div className="flex justify-between items-center p-4 bg-gray-900 text-[#1A1A1A]">
         <h2 className="text-xl font-semibold">
           {isReceivingCall
             ? "Incoming Call..."
@@ -634,7 +634,7 @@ const VideoCall = ({ selectedUser, onClose, incomingCallData }) => {
           variant="ghost"
           size="icon"
           onClick={endCall}
-          className="text-white hover:bg-gray-800"
+          className="text-[#1A1A1A] hover:bg-gray-800"
         >
           <X className="h-6 w-6" />
         </Button>
@@ -654,7 +654,7 @@ const VideoCall = ({ selectedUser, onClose, incomingCallData }) => {
 
         {/* Placeholder when no remote video */}
         {!remoteStream && (
-          <div className="flex flex-col items-center justify-center text-white">
+          <div className="flex flex-col items-center justify-center text-[#1A1A1A]">
             <div className="w-32 h-32 rounded-full bg-gray-700 flex items-center justify-center text-4xl mb-4">
               {selectedUser?.username?.charAt(0).toUpperCase()}
             </div>
@@ -683,9 +683,9 @@ const VideoCall = ({ selectedUser, onClose, incomingCallData }) => {
       {/* Controls */}
       <div className="bg-gray-900 p-6 flex justify-center items-center gap-4">
         {!callAccepted && isCalling ? (
-          <div className="text-white text-lg">Calling...</div>
+          <div className="text-[#1A1A1A] text-lg">Calling...</div>
         ) : !callAccepted && isReceivingCall ? (
-          <div className="text-white text-lg">Connecting...</div>
+          <div className="text-[#1A1A1A] text-lg">Connecting...</div>
         ) : (
           <>
             <Button

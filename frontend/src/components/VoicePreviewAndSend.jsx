@@ -59,7 +59,7 @@ const VoicePreviewAndSend = ({
     <>
       {/* Backdrop overlay */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-[#FAF6F0]/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
         onClick={resetAudio}
       >
         {/* Modal */}
@@ -71,20 +71,20 @@ const VoicePreviewAndSend = ({
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                <Mic className="w-6 h-6 text-white" />
+                <Mic className="w-6 h-6 text-[#1A1A1A]" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">
                   Voice Message
                 </h3>
-                <p className="text-sm text-gray-500">Preview and send</p>
+                <p className="text-sm text-gray-600">Preview and send</p>
               </div>
             </div>
             <button
               onClick={resetAudio}
               className="w-8 h-8 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors"
             >
-              <X className="w-5 h-5 text-gray-500" />
+              <X className="w-5 h-5 text-gray-600" />
             </button>
           </div>
 
@@ -97,7 +97,7 @@ const VoicePreviewAndSend = ({
               className="w-full"
             />
             {duration !== null && (
-              <div className="flex items-center justify-center mt-3 text-sm text-gray-600">
+              <div className="flex items-center justify-center mt-3 text-sm text-gray-800">
                 <span className="font-medium">Duration:</span>
                 <span className="ml-2 font-mono">
                   {Math.floor(duration / 60)}:
@@ -119,7 +119,7 @@ const VoicePreviewAndSend = ({
             </Button>
             <Button
               onClick={handleSend}
-              className="flex-1 h-11 rounded-xl font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg"
+              className="flex-1 h-11 rounded-xl font-medium bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-[#1A1A1A] shadow-lg"
             >
               <Send className="w-4 h-4 mr-2" />
               Send

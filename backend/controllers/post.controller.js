@@ -8,6 +8,7 @@ import { Notification } from "../models/notification.model.js";
 import { Conversation } from "../models/conversation.model.js";
 import { Message } from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
+import redisClient from "../config/redis.js";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -119,6 +120,16 @@ export const getReelsPost = async (req, res) => {
 
 export const getAllPost = async (req, res) => {
   try {
+    // REDIS CACHE: Check if home feed is in memory
+    const cacheKey = 'home_feed';
+    const cachedFeed = await redisClient.get(cacheKey);
+    
+    if (cachedFeed) {
+      console.log(`[Redis] Cache Hit for home feed`);
+      return res.status(200).json({ posts: JSON.parse(cachedFeed), success: true, cached: true });
+    }
+    
+    console.log(`[Redis] Cache Miss for home feed. Fetching from DB...`);
     const posts = await Post.find()
       .sort({ createdAt: -1 })
       .populate({ path: "author", select: "username profilePicture" })
@@ -140,6 +151,10 @@ export const getAllPost = async (req, res) => {
         ],
       });
     
+    // REDIS CACHE: Store the result in Redis for 1 minute (60 seconds)
+    // We use a shorter time here so the global feed updates faster when someone posts
+    await redisClient.setEx(cacheKey, 60, JSON.stringify(posts));
+
     return res.status(200).json({
       posts,
       success: true,
@@ -180,13 +195,38 @@ export const getUserPost = async (req, res) => {
 export const getExplorePost = async (req, res) => {
   try {
     const userId = req.id;
+    
+    // REDIS CACHE: Check if user's explore feed is in memory
+    const cacheKey = `explore_feed:${userId}`;
+    const cachedFeed = await redisClient.get(cacheKey);
+    
+    if (cachedFeed) {
+      console.log(`[Redis] Cache Hit for explore feed: ${userId}`);
+      return res.status(200).json({ posts: JSON.parse(cachedFeed), success: true, cached: true });
+    }
+    
+    console.log(`[Redis] Cache Miss for explore feed: ${userId}. Fetching from DB...`);
+    let mlRecommendedIds = [];
+    
+    // Attempt to fetch ML Recommendations
+    try {
+      const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+      const mlResponse = await fetch(`${ML_BASE_URL}/recommend/${userId}?limit=20`);
+      if (mlResponse.ok) {
+        const mlData = await mlResponse.json();
+        mlRecommendedIds = mlData.recommended_post_ids || [];
+      }
+    } catch (mlError) {
+      console.log("ML Service unavailable, falling back to default explore feed.", mlError.message);
+    }
+
     const publicUsers = await User.find({ isPrivate: false, _id: { $ne: userId } }).select('_id');
     const publicUserIds = publicUsers.map(u => u._id);
 
-    const posts = await Post.find({ author: { $in: publicUserIds } })
-      .sort({ createdAt: -1 })
-      .populate({ path: "author", select: "username profilePicture isPrivate" })
-      .populate({
+    let posts = [];
+    const populateConfig = [
+      { path: "author", select: "username profilePicture isPrivate" },
+      {
         path: "comments",
         sort: { createdAt: -1 },
         populate: [
@@ -202,10 +242,36 @@ export const getExplorePost = async (req, res) => {
             ] 
           }
         ],
-      });
+      }
+    ];
+
+    if (mlRecommendedIds.length > 0) {
+      // Fetch specifically the recommended posts, and sort them in the exact order recommended
+      posts = await Post.find({
+        _id: { $in: mlRecommendedIds },
+        author: { $in: publicUserIds }
+      }).populate(populateConfig);
+      
+      // Sort in JS to match the ML service's score order
+      const orderMap = new Map(mlRecommendedIds.map((id, index) => [id.toString(), index]));
+      posts.sort((a, b) => orderMap.get(a._id.toString()) - orderMap.get(b._id.toString()));
+    }
+
+    // If ML returned nothing, or all ML posts were filtered out (e.g. they were the user's own posts)
+    if (posts.length === 0) {
+      // Fallback chronological feed
+      posts = await Post.find({ author: { $in: publicUserIds } })
+        .sort({ createdAt: -1 })
+        .populate(populateConfig);
+    }
+
+    // REDIS CACHE: Store the result in Redis for 5 minutes (300 seconds)
+    await redisClient.setEx(cacheKey, 300, JSON.stringify(posts));
+
     return res.status(200).json({ posts, success: true });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 export const likePost = async (req, res) => {
@@ -280,15 +346,36 @@ export const addComment = async (req, res) => {
   try {
     const postId = req.params.id;
     const commentKrneWalaUserKiId = req.id;
-
     const { text } = req.body;
-
-    const post = await Post.findById(postId).populate('author', '_id');
 
     if (!text)
       return res
         .status(400)
         .json({ message: "text is required", success: false });
+
+    // 1. FAST FAIL: Run Custom ML Toxic Comment Classifier before hitting the DB
+    try {
+      const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+      const mlResponse = await fetch(`${ML_BASE_URL}/moderate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      
+      const mlResult = await mlResponse.json();
+      
+      if (mlResult.flagged) {
+        return res.status(400).json({ 
+          message: `Comment blocked by Bloom AI! Toxicity probability: ${(mlResult.toxic_probability * 100).toFixed(1)}%. Please keep Bloom a safe community.`, 
+          success: false 
+        });
+      }
+    } catch (modError) {
+      console.log("Custom ML Moderation API error:", modError);
+    }
+
+    // 2. DB Operations
+    const post = await Post.findById(postId).populate('author', '_id');
 
     if (!post) {
       return res.status(404).json({ message: "Post not found", success: false });
@@ -440,7 +527,7 @@ export const generateAIContent = async (req, res) => {
         {
           role: "user",
           content: [
-            { type: "text", text: "Analyze this image and suggest 3 creative, short Instagram captions with relevant hashtags. Format the response as a JSON array of objects, each with 'text' and 'hashtags' fields." },
+            { type: "text", text: "Analyze this image and suggest 3 creative, short Bloom captions with relevant hashtags. Format the response as a JSON array of objects, each with 'text' and 'hashtags' fields." },
             {
               type: "image_url",
               image_url: {
@@ -522,6 +609,29 @@ export const addReply = async (req, res) => {
     const userId = req.id;
     const commentId = req.params.id;
     const { text } = req.body;
+
+    if (!text) return res.status(400).json({ message: "Text is required", success: false });
+
+    // Custom ML Toxic Comment Classifier
+    try {
+      const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+      const mlResponse = await fetch(`${ML_BASE_URL}/moderate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      
+      const mlResult = await mlResponse.json();
+      
+      if (mlResult.flagged) {
+        return res.status(400).json({ 
+          message: `Reply blocked by Bloom AI! Toxicity probability: ${(mlResult.toxic_probability * 100).toFixed(1)}%. Please keep Bloom a safe community.`, 
+          success: false 
+        });
+      }
+    } catch (modError) {
+      console.log("Custom ML Moderation API error:", modError);
+    }
     
     const parentComment = await Comment.findById(commentId).populate('author', 'username profilePicture');
     if (!parentComment) return res.status(404).json({ message: "Comment not found", success: false });
@@ -575,7 +685,7 @@ export const translateComment = async (req, res) => {
       messages: [
         {
           role: "system",
-          content: "You are a translator. Translate the given Instagram comment to English. Only provide the translated text, nothing else."
+          content: "You are a translator. Translate the given Bloom comment to English. Only provide the translated text, nothing else."
         },
         {
           role: "user",
@@ -681,7 +791,7 @@ export const getSmartReplies = async (req, res) => {
       messages: [
         {
           role: "system",
-          content: `You are a smart reply suggestion engine for an Instagram-like chat app. 
+          content: `You are a smart reply suggestion engine for an Bloom-like chat app. 
 Given the recent conversation, suggest exactly 3 short, casual, contextually appropriate replies that the current user could send next.
 Keep each reply under 6 words. Use emojis when natural. Match the conversation's tone and language.
 Return a JSON object with a key "replies" containing an array of 3 strings.

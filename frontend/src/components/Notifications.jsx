@@ -94,11 +94,11 @@ const Notifications = () => {
     };
 
     return (
-        <div className='flex-1 min-h-screen bg-black text-white p-4 md:p-8 max-w-2xl mx-auto'>
+        <div className='flex-1 min-h-screen bg-[#FAF6F0] text-[#1A1A1A] p-4 md:p-8 max-w-2xl mx-auto'>
             <h1 className='font-bold text-2xl mb-8 tracking-tight'>Notifications</h1>
             <div className='flex flex-col gap-2'>
                 {allNotifications.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-white/40 gap-4">
+                    <div className="flex flex-col items-center justify-center py-20 text-[#1A1A1A]/40 gap-4">
                         <Heart className="w-16 h-16 stroke-[1]" />
                         <p className='text-sm font-medium'>No notifications yet.</p>
                     </div>
@@ -118,11 +118,11 @@ const Notifications = () => {
                                     <div className="relative shrink-0">
                                         <Avatar className="w-12 h-12 border border-white/10 ring-2 ring-transparent group-hover:ring-white/20 transition-all">
                                             <AvatarImage src={notification.sender?.profilePicture} />
-                                            <AvatarFallback className="bg-[#262626] text-white/50">
+                                            <AvatarFallback className="bg-[#F1E8DF] text-[#1A1A1A]/50">
                                                 <User size={20} />
                                             </AvatarFallback>
                                         </Avatar>
-                                        <div className="absolute -bottom-1 -right-1 bg-black rounded-full p-1 border border-white/10">
+                                        <div className="absolute -bottom-1 -right-1 bg-[#FAF6F0] rounded-full p-1 border border-white/10">
                                             {getNotificationIcon(notification.type)}
                                         </div>
                                     </div>
@@ -132,9 +132,9 @@ const Notifications = () => {
                                                 {notification.sender?.username || notification.userDetails?.username}
                                             </span>
                                             {" "}
-                                            <span className="text-white/90">{notification.message}</span>
+                                            <span className="text-[#1A1A1A]/90">{notification.message}</span>
                                         </p>
-                                        <span className='text-[11px] text-white/40 mt-1 block font-medium uppercase tracking-wider'>
+                                        <span className='text-[11px] text-[#1A1A1A]/40 mt-1 block font-medium uppercase tracking-wider'>
                                             {new Date(notification.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                         </span>
                                     </div>
@@ -144,14 +144,14 @@ const Notifications = () => {
                                     <div className='flex gap-2 shrink-0' onClick={e => e.stopPropagation()}>
                                         <Button 
                                             onClick={() => handleAccept(senderId)}
-                                            className='bg-[#0095F6] hover:bg-[#1877F2] text-white h-8 px-4 text-xs font-bold rounded-lg'
+                                            className='bg-[#0095F6] hover:bg-[#1877F2] text-[#1A1A1A] h-8 px-4 text-xs font-bold rounded-lg'
                                         >
                                             Accept
                                         </Button>
                                         <Button 
                                             onClick={() => handleDecline(senderId)}
                                             variant='ghost'
-                                            className='h-8 px-4 text-xs font-bold hover:bg-white/10 text-white border border-white/20 rounded-lg'
+                                            className='h-8 px-4 text-xs font-bold hover:bg-white/10 text-[#1A1A1A] border border-white/20 rounded-lg'
                                         >
                                             Decline
                                         </Button>
@@ -160,11 +160,11 @@ const Notifications = () => {
 
                                 {(notification.type === 'like' || notification.type === 'comment') && notification.post && (
                                     <div className="shrink-0">
-                                        <div className='w-12 h-12 bg-[#262626] rounded-lg overflow-hidden border border-white/10 hover:opacity-80 transition-opacity relative group/thumb'>
+                                        <div className='w-12 h-12 bg-[#F1E8DF] rounded-lg overflow-hidden border border-white/10 hover:opacity-80 transition-opacity relative group/thumb'>
                                             {notification.post.video || notification.post.image?.includes('video') ? (
                                                 <div className="w-full h-full flex items-center justify-center relative">
                                                     <video src={notification.post.image || notification.post.video} className="w-full h-full object-cover" />
-                                                    <Play className="absolute inset-0 m-auto w-4 h-4 text-white fill-white opacity-60 group-hover/thumb:opacity-100 transition-opacity" />
+                                                    <Play className="absolute inset-0 m-auto w-4 h-4 text-[#1A1A1A] fill-white opacity-60 group-hover/thumb:opacity-100 transition-opacity" />
                                                 </div>
                                             ) : (
                                                 <img src={notification.post.image} alt="Post" className="w-full h-full object-cover" />

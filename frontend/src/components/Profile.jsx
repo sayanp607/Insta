@@ -16,6 +16,8 @@ import useGetHighlights from "@/hooks/useGetHighlights";
 import StoryViewer from "./stories/StoryViewer";
 import { getSocket } from "@/socketInstance,";
 import { Plus } from "lucide-react";
+import CommentDialog from "./CommentDialog";
+import { setSelectedPost } from "@/redux/postSlice";
 
 const Profile = () => {
   const params = useParams();
@@ -26,8 +28,14 @@ const Profile = () => {
   const [showFollowingDialog, setShowFollowingDialog] = useState(false);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [selectedHighlightIndex, setSelectedHighlightIndex] = useState(null);
+  const [openPost, setOpenPost] = useState(false);
   const { highlights } = useGetHighlights(userId);
   const dispatch = useDispatch();
+
+  const handlePostClick = (post) => {
+    dispatch(setSelectedPost(post));
+    setOpenPost(true);
+  };
 
   const { userProfile, user } = useSelector((store) => store.auth);
   const socket = getSocket();
@@ -131,7 +139,7 @@ const Profile = () => {
                     <Link to="/account/edit">
                       <Button
                         variant="secondary"
-                        className="hover:bg-[#262626] bg-[#1a1a1a] text-white border border-[#363636] h-8"
+                        className="hover:bg-[#F1E8DF] bg-[#FFFFFF] text-[#1A1A1A] border border-[#EADCCA] h-8"
                       >
                         Edit profile
                       </Button>
@@ -141,25 +149,25 @@ const Profile = () => {
                   <>
                     <button
                       onClick={followOrUnfollowHandler}
-                      className="bg-[#262626] hover:bg-[#363636] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200"
+                      className="bg-[#F1E8DF] hover:bg-[#EADCCA] text-[#1A1A1A] px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200"
                     >
                       Following
                     </button>
-                    <button className="bg-[#262626] hover:bg-[#363636] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200">
+                    <button className="bg-[#F1E8DF] hover:bg-[#EADCCA] text-[#1A1A1A] px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200">
                       Message
                     </button>
                   </>
                 ) : isRequested ? (
                   <button
                     onClick={followOrUnfollowHandler}
-                    className="bg-[#262626] hover:bg-[#363636] text-white px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200"
+                    className="bg-[#F1E8DF] hover:bg-[#EADCCA] text-[#1A1A1A] px-6 py-2 rounded-lg font-bold text-sm transition-all duration-200"
                   >
                     Requested
                   </button>
                 ) : (
                   <button
                     onClick={followOrUnfollowHandler}
-                    className="bg-[#0095F6] hover:bg-[#1877F2] text-white px-8 py-2 rounded-lg font-bold text-sm transition-all duration-200 shadow-md shadow-blue-500/20"
+                    className="bg-[#0095F6] hover:bg-[#1877F2] text-[#1A1A1A] px-8 py-2 rounded-lg font-bold text-sm transition-all duration-200 shadow-md shadow-blue-500/20"
                   >
                     {userProfile?.isFollower ? "Follow Back" : "Follow"}
                   </button>
@@ -192,10 +200,10 @@ const Profile = () => {
                 </p>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="font-semibold text-white">
+                <span className="font-semibold text-[#1A1A1A]">
                   {userProfile?.bio || "No bio yet"}
                 </span>
-                <div className="flex items-center gap-1 text-gray-500 text-sm">
+                <div className="flex items-center gap-1 text-gray-600 text-sm">
                   <AtSign size={14} /> 
                   <span>{userProfile?.username}</span>
                 </div>
@@ -206,40 +214,40 @@ const Profile = () => {
 
         {/* Highlights Section (Hidden if restricted) */}
         {!isRestricted && highlights.length > 0 && (
-          <div className="flex gap-6 overflow-x-auto no-scrollbar py-4 border-t border-[#262626]">
+          <div className="flex gap-6 overflow-x-auto no-scrollbar py-4 border-t border-gray-300">
             {highlights.map((h, index) => (
               <div 
                 key={h._id} 
                 className="flex flex-col items-center gap-2 cursor-pointer group min-w-[80px]"
                 onClick={() => setSelectedHighlightIndex(index)}
               >
-                <div className="w-16 h-16 rounded-full border border-[#262626] p-[2px] group-hover:border-gray-500 transition-colors shadow-lg">
+                <div className="w-16 h-16 rounded-full border border-gray-300 p-[2px] group-hover:border-gray-500 transition-colors shadow-lg">
                    <div className="w-full h-full rounded-full overflow-hidden">
                       <img src={h.cover} alt={h.name} className="w-full h-full object-cover" />
                    </div>
                 </div>
-                <span className="text-xs text-white font-medium truncate w-full text-center">{h.name}</span>
+                <span className="text-xs text-[#1A1A1A] font-medium truncate w-full text-center">{h.name}</span>
               </div>
             ))}
           </div>
         )}
 
         {isRestricted ? (
-          <div className="border-t border-[#262626] flex flex-col items-center justify-center py-20 bg-[#0a0a0a] rounded-b-xl">
-             <div className="p-6 border-2 border-[#262626] rounded-full mb-6">
-                <Lock size={48} className="text-gray-400" />
+          <div className="border-t border-gray-300 flex flex-col items-center justify-center py-20 bg-[#0a0a0a] rounded-b-xl">
+             <div className="p-6 border-2 border-gray-300 rounded-full mb-6">
+                <Lock size={48} className="text-gray-600" />
              </div>
-             <h1 className="text-xl font-bold text-white mb-2">This Account is Private</h1>
-             <p className="text-gray-500 max-w-sm text-center">
+             <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">This Account is Private</h1>
+             <p className="text-gray-600 max-w-sm text-center">
                 Follow this account to see their photos and videos.
              </p>
           </div>
         ) : (
-          <div className="border-t border-[#262626]">
-            <div className="flex items-center justify-center gap-10 text-xs font-bold tracking-widest text-gray-500">
+          <div className="border-t border-gray-300">
+            <div className="flex items-center justify-center gap-10 text-xs font-bold tracking-widest text-gray-600">
               <span
                 className={`py-3 cursor-pointer flex items-center gap-1 border-t ${
-                  activeTab === "posts" ? "text-white border-white" : "border-transparent"
+                  activeTab === "posts" ? "text-[#1A1A1A] border-white" : "border-transparent"
                 }`}
                 onClick={() => handleTabChange("posts")}
               >
@@ -248,7 +256,7 @@ const Profile = () => {
               {isLoggedInUserProfile && (
                 <span
                   className={`py-3 cursor-pointer flex items-center gap-1 border-t ${
-                    activeTab === "saved" ? "text-white border-white" : "border-transparent"
+                    activeTab === "saved" ? "text-[#1A1A1A] border-white" : "border-transparent"
                   }`}
                   onClick={() => handleTabChange("saved")}
                 >
@@ -259,14 +267,18 @@ const Profile = () => {
             <div className="grid grid-cols-3 gap-1 md:gap-4 mt-4">
               {displayedPost?.map((post) => {
                 return (
-                  <div key={post?._id} className="relative aspect-square group cursor-pointer overflow-hidden rounded-sm md:rounded-md">
+                  <div 
+                    key={post?._id} 
+                    className="relative aspect-square group cursor-pointer overflow-hidden rounded-sm md:rounded-md"
+                    onClick={() => handlePostClick(post)}
+                  >
                     <img
                       src={post.image}
                       alt="postimage"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="flex items-center text-white space-x-6 font-bold">
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#FAF6F0]/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex items-center text-[#1A1A1A] space-x-6 font-bold">
                         <div className="flex items-center gap-2">
                           <Heart className="fill-white" size={20} />
                           <span>{post?.likes.length}</span>
@@ -314,6 +326,9 @@ const Profile = () => {
             initialGroupIndex={selectedHighlightIndex}
         />
       )}
+
+      {/* Dialog for displaying clicked post */}
+      <CommentDialog open={openPost} setOpen={setOpenPost} />
     </div>
   );
 };

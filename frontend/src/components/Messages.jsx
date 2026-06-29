@@ -372,19 +372,20 @@ const Messages = ({
       )}
 
       {/* Scrollable Content */}
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-        {/* User Profile Section */}
-        <div className="flex flex-col items-center justify-center py-12 animate-in fade-in zoom-in-95 duration-1000">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto custom-scrollbar p-6 w-full flex flex-col items-center">
+        <div className="w-full max-w-3xl space-y-8 flex flex-col">
+          {/* User Profile Section */}
+          <div className="flex flex-col items-center justify-center py-12 animate-in fade-in zoom-in-95 duration-1000">
           <div className="relative mb-6">
             <Avatar className="h-28 w-28 ring-4 ring-primary/5 shadow-[0_0_40px_rgba(0,0,0,0.2)]">
               <AvatarImage src={selectedUser?.profilePicture} alt="profile" className="object-cover" />
-              <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white text-4xl font-black">
+              <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-[#1A1A1A] text-4xl font-black">
                 {selectedUser?.username?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="absolute -bottom-2 -right-2 bg-background p-1 rounded-full shadow-lg border border-border">
               <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center">
-                <Pin className="w-3 h-3 text-white fill-white" />
+                <Pin className="w-3 h-3 text-[#1A1A1A] fill-white" />
               </div>
             </div>
           </div>
@@ -637,7 +638,7 @@ const Messages = ({
                     <div
                       className={`px-4 py-2.5 chat-bubble-shadow transition-all group-hover/msg:shadow-2xl relative ${
                         isMyMessage
-                          ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-[20px] rounded-br-[4px]"
+                          ? "bg-gradient-to-br from-blue-600 to-indigo-600 text-[#1A1A1A] rounded-[20px] rounded-br-[4px]"
                           : "bg-card/80 backdrop-blur-sm text-foreground border border-white/5 rounded-[20px] rounded-bl-[4px]"
                       }`}
                     >
@@ -769,6 +770,7 @@ const Messages = ({
             </div>
           )}
           <div ref={messagesEndRef} />
+        </div>
         </div>
       </div>
 

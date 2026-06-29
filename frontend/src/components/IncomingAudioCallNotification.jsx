@@ -82,7 +82,7 @@ const IncomingAudioCallNotification = ({ onAccept, onReject }) => {
                 src={incomingCall.caller.profilePicture}
                 alt="caller"
               />
-              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-white text-xl">
+              <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-400 text-[#1A1A1A] text-xl">
                 {incomingCall.caller.username?.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
@@ -93,7 +93,7 @@ const IncomingAudioCallNotification = ({ onAccept, onReject }) => {
             <h3 className="font-semibold text-lg text-gray-900">
               {incomingCall.caller.username}
             </h3>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
+            <p className="text-sm text-gray-600 flex items-center gap-1">
               <Phone className="h-3 w-3" />
               Incoming audio call...
             </p>
@@ -104,14 +104,14 @@ const IncomingAudioCallNotification = ({ onAccept, onReject }) => {
         <div className="flex gap-3">
           <Button
             onClick={handleReject}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-full py-3"
+            className="flex-1 bg-red-500 hover:bg-red-600 text-[#1A1A1A] rounded-full py-3"
           >
             <PhoneOff className="h-5 w-5 mr-2" />
             Decline
           </Button>
           <Button
             onClick={handleAccept}
-            className="flex-1 bg-green-500 hover:bg-green-600 text-white rounded-full py-3"
+            className="flex-1 bg-green-500 hover:bg-green-600 text-[#1A1A1A] rounded-full py-3"
           >
             <Phone className="h-5 w-5 mr-2" />
             Accept

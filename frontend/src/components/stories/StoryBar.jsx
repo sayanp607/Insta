@@ -15,7 +15,7 @@ const StoryBar = () => {
   const otherStories = stories.filter(group => group.author._id.toString() !== user?._id?.toString());
 
   return (
-    <div className="flex items-center gap-4 py-4 px-2 overflow-x-auto no-scrollbar bg-black border-b border-[#262626]">
+    <div className="flex items-center gap-4 py-4 px-2 overflow-x-auto no-scrollbar bg-transparent border-b border-gray-300">
       {/* My Story / Add Story */}
       <StoryItem 
         author={user} 

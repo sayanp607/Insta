@@ -172,9 +172,14 @@ function App() {
             // Increment unread count for regular messages only
             dispatch(addUnreadMessage({ userId: message.senderId }));
 
+            // Find sender name from Redux state
+            const allUsers = state?.auth?.suggestedUsers || [];
+            const sender = allUsers.find(u => u._id === message.senderId);
+            const senderName = sender ? sender.username : "Someone";
+
             // Show toast notification for new message
             import("sonner").then(({ toast }) => {
-              toast.info("New message received");
+              toast.info(`New message from ${senderName}`);
             });
           } else {
             console.log("Call message received, not counting as unread");

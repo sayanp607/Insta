@@ -64,7 +64,7 @@ const FollowersDialog = ({ open, onOpenChange, users, title }) => {
         {/* Search Bar */}
         <div className="px-4 py-2">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-600" />
             <Input
               type="text"
               placeholder="Search..."
@@ -79,7 +79,7 @@ const FollowersDialog = ({ open, onOpenChange, users, title }) => {
         <div className="max-h-[450px] overflow-y-auto px-4 pb-4 custom-scrollbar">
           {filteredUsers?.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-gray-500 text-sm">No users found</p>
+              <p className="text-gray-600 text-sm">No users found</p>
             </div>
           ) : (
             filteredUsers?.map((user) => {
@@ -119,7 +119,7 @@ const FollowersDialog = ({ open, onOpenChange, users, title }) => {
                           {user?.username}
                         </span>
                       </Link>
-                      <span className="text-gray-500 text-[12px] truncate max-w-[180px]">
+                      <span className="text-gray-600 text-[12px] truncate max-w-[180px]">
                         {user?.bio || "No bio yet"}
                       </span>
                     </div>
@@ -131,7 +131,7 @@ const FollowersDialog = ({ open, onOpenChange, users, title }) => {
                       className={`px-5 py-2 rounded-lg text-[13px] font-bold transition-all duration-200 active:scale-95 ${
                         isFollowing
                           ? "bg-gray-100 hover:bg-gray-200 text-gray-900 border border-gray-200"
-                          : "bg-[#0095F6] hover:bg-[#1877F2] text-white shadow-md shadow-blue-500/20"
+                          : "bg-[#0095F6] hover:bg-[#1877F2] text-[#1A1A1A] shadow-md shadow-blue-500/20"
                       }`}
                     >
                       {isFollowing ? "Following" : (user?.isFollower ? "Follow Back" : "Follow")}

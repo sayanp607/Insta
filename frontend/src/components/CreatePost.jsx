@@ -25,6 +25,10 @@ const CreatePost = ({ open, setOpen }) => {
   const [selectedSong, setSelectedSong] = useState(null);
   const [songStart, setSongStart] = useState(0);
   
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [generatingAi, setGeneratingAi] = useState(false);
+  const [aiProvider, setAiProvider] = useState("pollinations");
+  
   const [pixelCrop, setPixelCrop] = useState(null);
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [aiLoading, setAiLoading] = useState(false);
@@ -59,6 +63,28 @@ const CreatePost = ({ open, setOpen }) => {
     } catch (e) {
       console.error(e);
       toast.error("Failed to crop image");
+    }
+  };
+
+  const generateDalleImage = async () => {
+    if (!aiPrompt.trim()) return;
+    try {
+      setGeneratingAi(true);
+      const res = await axios.post("http://localhost:8000/generate_image", { prompt: aiPrompt, provider: aiProvider });
+      if (res.data.success && res.data.image_url) {
+        // Fetch the generated image and convert to File
+        const imageRes = await fetch(res.data.image_url);
+        const blob = await imageRes.blob();
+        const file = new File([blob], "dalle_generated.jpg", { type: "image/jpeg" });
+        setMediaFile(file);
+        const dataUrl = await readFileAsDataURL(file);
+        setRawImage(dataUrl);
+        setStep(2); // Proceed to crop step
+      }
+    } catch (e) {
+      toast.error("Failed to generate AI image. Try again.");
+    } finally {
+      setGeneratingAi(false);
     }
   };
 
@@ -180,15 +206,15 @@ const CreatePost = ({ open, setOpen }) => {
   return (
     <Dialog open={open} onOpenChange={(val) => { if(!val) { setOpen(false); resetState(); }}}>
       <DialogContent className="p-0 border-none bg-transparent shadow-none max-w-xl">
-        <div className="bg-[#121212] rounded-xl overflow-hidden border border-[#262626]">
-          <div className="flex items-center justify-between p-3 border-b border-[#262626] bg-[#121212]">
+        <div className="bg-[#FAF6F0] rounded-xl overflow-hidden border border-gray-300">
+          <div className="flex items-center justify-between p-3 border-b border-gray-300 bg-[#FAF6F0]">
             {step > 1 && step < 6 ? (
-              <button onClick={() => setStep(step - 1)} className="text-white hover:text-gray-400 transition-colors">
+              <button onClick={() => setStep(step - 1)} className="text-[#1A1A1A] hover:text-gray-600 transition-colors">
                 <ArrowLeft size={24} />
               </button>
             ) : <div className="w-6" />}
             
-            <h2 className="text-md font-bold text-white">
+            <h2 className="text-md font-bold text-[#1A1A1A]">
               {step === 1 && "Create New Post"}
               {step === 2 && "Crop"}
               {step === 3 && "Edit"}
@@ -196,19 +222,19 @@ const CreatePost = ({ open, setOpen }) => {
               {step === 5 && "Share"}
             </h2>
 
-            <button onClick={() => { setOpen(false); resetState(); }} className="text-white hover:text-gray-400 transition-colors">
+            <button onClick={() => { setOpen(false); resetState(); }} className="text-[#1A1A1A] hover:text-gray-600 transition-colors">
               <X size={24} />
             </button>
           </div>
 
           {step === 1 && (
-            <div className="flex flex-col items-center justify-center h-[500px] gap-6 p-8 text-center bg-[#121212]">
-              <div className="p-6 bg-[#1a1a1a] rounded-full border border-[#262626]">
-                <ImageIcon size={64} className="text-gray-400" strokeWidth={1} />
+            <div className="flex flex-col items-center justify-center h-[500px] gap-6 p-8 text-center bg-[#FAF6F0]">
+              <div className="p-6 bg-[#FFFFFF] rounded-full border border-gray-300">
+                <ImageIcon size={64} className="text-gray-600" strokeWidth={1} />
               </div>
-              <div>
-                <h3 className="text-xl font-medium text-white mb-2">Drag photos and videos here</h3>
-                <p className="text-gray-500 text-sm mb-6">High resolution images work best</p>
+              <div className="w-full max-w-sm">
+                <h3 className="text-xl font-medium text-[#1A1A1A] mb-2">Drag photos and videos here</h3>
+                <p className="text-gray-600 text-sm mb-6">High resolution images work best</p>
                 <input
                   ref={imageRef}
                   type="file"
@@ -218,10 +244,42 @@ const CreatePost = ({ open, setOpen }) => {
                 />
                 <Button
                   onClick={() => imageRef.current.click()}
-                  className="bg-[#0095F6] hover:bg-[#1877F2] text-white font-bold px-8 rounded-lg"
+                  className="bg-[#0095F6] hover:bg-[#1877F2] w-full text-white font-bold py-6 rounded-lg mb-4"
                 >
                   Select from computer
                 </Button>
+                
+                <div className="relative flex py-2 items-center">
+                  <div className="flex-grow border-t border-[#EADCCA]"></div>
+                  <span className="flex-shrink-0 mx-4 text-gray-600 text-xs">OR GENERATE WITH AI</span>
+                  <div className="flex-grow border-t border-[#EADCCA]"></div>
+                </div>
+
+                <div className="mt-4 flex flex-col gap-3">
+                  <select
+                    className="w-full bg-[#FFFFFF] border border-[#EADCCA] text-[#1A1A1A] p-3 rounded-lg outline-none focus:border-[#0095F6] transition-colors"
+                    value={aiProvider}
+                    onChange={(e) => setAiProvider(e.target.value)}
+                  >
+                    <option value="pollinations">Pollinations.ai (Free SDXL/FLUX)</option>
+                    <option value="clipdrop">Clipdrop / Stability AI</option>
+                  </select>
+                  
+                  <input 
+                    type="text" 
+                    placeholder="e.g. A futuristic city at sunset..." 
+                    className="w-full bg-[#FFFFFF] border border-[#EADCCA] text-[#1A1A1A] p-3 rounded-lg outline-none focus:border-[#0095F6] transition-colors"
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                  />
+                  <Button
+                    onClick={generateDalleImage}
+                    disabled={generatingAi || !aiPrompt.trim()}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-bold py-6 rounded-lg"
+                  >
+                    {generatingAi ? "Generating Image..." : "Generate AI Image"}
+                  </Button>
+                </div>
               </div>
             </div>
           )}

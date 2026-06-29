@@ -106,7 +106,7 @@ const ReelItem = ({ reel, autoOpenComments, targetCommentId }) => {
   };
 
   return (
-    <div className="relative h-screen w-full snap-start flex items-center justify-center bg-black overflow-hidden group">
+    <div className="relative h-screen w-full snap-start flex items-center justify-center bg-[#FAF6F0] overflow-hidden group">
       {/* Video Container */}
       <div 
         className="relative h-full w-full max-w-[450px]"
@@ -146,7 +146,7 @@ const ReelItem = ({ reel, autoOpenComments, targetCommentId }) => {
               exit={{ scale: 0, opacity: 0 }}
               className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none"
             >
-              <Heart className="w-24 h-24 fill-white text-white drop-shadow-2xl" />
+              <Heart className="w-24 h-24 fill-white text-[#1A1A1A] drop-shadow-2xl" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -157,13 +157,13 @@ const ReelItem = ({ reel, autoOpenComments, targetCommentId }) => {
             e.stopPropagation();
             dispatch(setIsGlobalMuted(!isGlobalMuted));
           }}
-          className="absolute top-6 right-4 p-2 bg-black/40 backdrop-blur-md rounded-full text-white border border-white/20 z-20 hover:bg-black/60 transition-all"
+          className="absolute top-6 right-4 p-2 bg-[#FAF6F0]/40 backdrop-blur-md rounded-full text-[#1A1A1A] border border-white/20 z-20 hover:bg-[#FAF6F0]/60 transition-all"
         >
           {isGlobalMuted ? <VolumeX size={20} /> : <Volume2 size={20} className="text-[#0095F6]" />}
         </button>
 
         {/* Reel Info (Bottom Left) */}
-        <div className="absolute bottom-6 left-4 right-16 text-white space-y-4">
+        <div className="absolute bottom-6 left-4 right-16 text-[#1A1A1A] space-y-4">
           <div className="flex items-center gap-3">
             <Avatar className="w-10 h-10 border-2 border-white/20">
               <AvatarImage src={reel.author?.profilePicture} />
@@ -196,9 +196,9 @@ const ReelItem = ({ reel, autoOpenComments, targetCommentId }) => {
               onClick={handleLike}
               className="p-2 transition-transform active:scale-75"
             >
-              <Heart className={`w-8 h-8 ${liked ? "fill-red-500 text-red-500" : "text-white"}`} />
+              <Heart className={`w-8 h-8 ${liked ? "fill-red-500 text-red-500" : "text-[#1A1A1A]"}`} />
             </button>
-            <span className="text-[13px] text-white font-medium">{likeCount}</span>
+            <span className="text-[13px] text-[#1A1A1A] font-medium">{likeCount}</span>
           </div>
 
           <div className="flex flex-col items-center gap-1.5">
@@ -209,17 +209,17 @@ const ReelItem = ({ reel, autoOpenComments, targetCommentId }) => {
               }}
               className="p-2 transition-transform active:scale-75"
             >
-              <MessageCircle className="w-8 h-8 text-white" />
+              <MessageCircle className="w-8 h-8 text-[#1A1A1A]" />
             </button>
-            <span className="text-[13px] text-white font-medium">{reel.comments.length}</span>
+            <span className="text-[13px] text-[#1A1A1A] font-medium">{reel.comments.length}</span>
           </div>
 
           <button className="p-2 transition-transform active:scale-75">
-            <Send className="w-7 h-7 text-white" />
+            <Send className="w-7 h-7 text-[#1A1A1A]" />
           </button>
 
           <button className="p-2 transition-transform active:scale-75">
-            <MoreVertical className="w-7 h-7 text-white" />
+            <MoreVertical className="w-7 h-7 text-[#1A1A1A]" />
           </button>
 
           <div className="w-8 h-8 rounded-lg border-2 border-white/20 overflow-hidden animate-spin-slow">

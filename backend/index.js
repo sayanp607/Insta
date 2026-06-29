@@ -10,7 +10,7 @@ import storyRoute from "./routes/story.route.js";
 import highlightRoute from "./routes/highlight.route.js";
 import {app,server} from "./socket/socket.js"
 import { connectKafka } from "./config/kafka.js";
-// import { connectRedis } from "./config/redis.js";
+import { connectRedis } from "./config/redis.js";
 
 
 dotenv.config({});
@@ -56,7 +56,7 @@ app.get("/",(req,res)=>{
 
 server.listen(PORT, async ()=>{
   await connectDB();
-  // await connectRedis();
+  await connectRedis();
   await connectKafka();
   console.log(`server running on ${PORT}`);
 

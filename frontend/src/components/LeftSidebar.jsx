@@ -127,14 +127,11 @@ const LeftSidebar = () => {
     { icon: <LogOut />, text: "Logout" },
   ];
   return (
-    <div className="fixed top-0 z-10 left-0 px-4 w-[18%] h-screen hidden lg:block bg-black">
-      <div className="absolute right-0 top-0 h-full">
-        <div className="creative-v-separator" />
-      </div>
+    <div className="fixed top-0 z-10 left-0 px-4 w-[18%] h-screen hidden lg:block bg-transparent border-r-2 border-gray-400/50 shadow-[2px_0_15px_rgba(0,0,0,0.05)]">
       <div className="flex flex-col h-full">
         <div className="my-10 pl-4">
-          <h1 className="text-2xl font-bold italic insta-gradient-text tracking-tighter">
-            Instagram
+          <h1 className="text-4xl font-black italic insta-gradient-text tracking-tighter drop-shadow-sm">
+            Bloom
           </h1>
         </div>
         <div className="flex-1">
@@ -143,22 +140,22 @@ const LeftSidebar = () => {
               <div
                 onClick={() => sidebarHandler(item.text)}
                 key={index}
-                className="flex items-center gap-4 hover:bg-[#1a1a1a] cursor-pointer rounded-xl p-3 my-2 transition-all duration-200 group"
+                className="flex items-center gap-4 hover:bg-pink-50 hover:translate-x-2 cursor-pointer rounded-xl p-3 my-2 transition-all duration-300 ease-out group shadow-sm hover:shadow-md border border-transparent hover:border-pink-200 bg-white/40 backdrop-blur-sm"
               >
                 <div className="relative group-hover:scale-110 transition-transform duration-200">
                   {item.icon}
                   {item.text === "Notifications" && unreadCount > 0 && (
-                    <div className="bg-[#FF3040] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center absolute -top-1 -right-1 border border-black shadow-sm">
+                    <div className="bg-[#FF3040] text-[#1A1A1A] text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center absolute -top-1 -right-1 border border-black shadow-sm">
                       {unreadCount}
                     </div>
                   )}
                   {item.text === "Messages" && unreadMessageCount > 0 && (
-                    <div className="bg-[#FF3040] text-white text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center absolute -top-1 -right-1 border border-black shadow-sm">
+                    <div className="bg-[#FF3040] text-[#1A1A1A] text-[9px] font-bold rounded-full h-4 w-4 flex items-center justify-center absolute -top-1 -right-1 border border-black shadow-sm">
                       {unreadMessageCount}
                     </div>
                   )}
                 </div>
-                <span className="text-[15px] font-medium transition-colors duration-200 group-hover:text-white text-gray-300">
+                <span className="text-[15px] font-medium transition-colors duration-200 group-hover:text-[#1A1A1A] text-gray-800">
                   {item.text}
                 </span>
               </div>

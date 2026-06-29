@@ -214,11 +214,11 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
                 <AvatarImage src={currentGroup.author.profilePicture} />
                 <AvatarFallback>{currentGroup.author.username[0]}</AvatarFallback>
               </Avatar>
-              <span className="text-white font-bold text-sm drop-shadow-md">
+              <span className="text-[#1A1A1A] font-bold text-sm drop-shadow-md">
                 {currentGroup.author.username}
               </span>
             </div>
-            <div className="flex items-center gap-3 text-white">
+            <div className="flex items-center gap-3 text-[#1A1A1A]">
               <button onClick={() => setIsMuted(!isMuted)}>
                 {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
               </button>
@@ -260,7 +260,7 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
             <div className="absolute bottom-10 left-0 right-0 flex flex-col items-center pointer-events-none">
               <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full flex items-center gap-2 border border-white/30 animate-pulse">
                  <img src={currentStory.song.thumbnail} className="w-6 h-6 rounded-sm" />
-                 <span className="text-white text-xs font-bold truncate max-w-[150px]">
+                 <span className="text-[#1A1A1A] text-xs font-bold truncate max-w-[150px]">
                     {currentStory.song.title} • {currentStory.song.artist}
                  </span>
               </div>
@@ -281,7 +281,7 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
             {user?._id === currentGroup.author._id ? (
                 <button 
                     onClick={() => setShowViewersDialog(true)}
-                    className="flex items-center gap-1 text-white/80 text-[10px] font-bold bg-black/20 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-black/40 transition-colors"
+                    className="flex items-center gap-1 text-[#1A1A1A]/80 text-[10px] font-bold bg-[#FAF6F0]/20 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-[#FAF6F0]/40 transition-colors"
                 >
                     <Users size={12} />
                     <span>{viewersCount} viewers</span>
@@ -296,9 +296,9 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
                {user?._id === currentGroup.author._id && (
                   <button 
                   onClick={() => setShowHighlightDialog(true)}
-                  className="flex flex-col items-center gap-1 text-white hover:scale-110 transition-transform"
+                  className="flex flex-col items-center gap-1 text-[#1A1A1A] hover:scale-110 transition-transform"
                   >
-                    <div className="w-8 h-8 rounded-full border border-white flex items-center justify-center bg-black/20 backdrop-blur-sm">
+                    <div className="w-8 h-8 rounded-full border border-white flex items-center justify-center bg-[#FAF6F0]/20 backdrop-blur-sm">
                        <MoreHorizontal size={16} />
                     </div>
                     <span className="text-[10px] font-bold">Highlight</span>
@@ -308,10 +308,10 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
                {/* Like button for everyone */}
                <button 
                 onClick={handleLikeStory}
-                className="flex flex-col items-center gap-1 text-white hover:scale-110 transition-transform"
+                className="flex flex-col items-center gap-1 text-[#1A1A1A] hover:scale-110 transition-transform"
                >
-                 <div className="w-8 h-8 rounded-full border border-white flex items-center justify-center bg-black/20 backdrop-blur-sm">
-                    <Heart size={16} fill={isLiked ? "#ee4956" : "none"} className={isLiked ? "text-[#ee4956]" : "text-white"} />
+                 <div className="w-8 h-8 rounded-full border border-white flex items-center justify-center bg-[#FAF6F0]/20 backdrop-blur-sm">
+                    <Heart size={16} fill={isLiked ? "#ee4956" : "none"} className={isLiked ? "text-[#ee4956]" : "text-[#1A1A1A]"} />
                  </div>
                  <span className="text-[10px] font-bold">{isLiked ? 'Liked' : 'Like'}</span>
                </button>
@@ -321,12 +321,12 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
 
         {/* Highlight Selection Dialog */}
         <Dialog open={showHighlightDialog} onOpenChange={setShowHighlightDialog}>
-            <DialogContent className="sm:max-w-xs bg-[#121212] border-[#262626] p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-xs bg-[#FAF6F0] border-gray-300 p-0 overflow-hidden">
                 <DialogTitle className="sr-only">Add to Highlight</DialogTitle>
                 <DialogDescription className="sr-only">Choose a highlight to add this story to</DialogDescription>
-                <div className="p-4 border-b border-[#262626] flex justify-between items-center">
-                    <h2 className="text-white font-bold">Add to Highlight</h2>
-                    <X size={20} className="text-gray-400 cursor-pointer" onClick={() => setShowHighlightDialog(false)} />
+                <div className="p-4 border-b border-gray-300 flex justify-between items-center">
+                    <h2 className="text-[#1A1A1A] font-bold">Add to Highlight</h2>
+                    <X size={20} className="text-gray-600 cursor-pointer" onClick={() => setShowHighlightDialog(false)} />
                 </div>
                 <div className="max-h-[300px] overflow-y-auto p-4 space-y-4">
                     {/* Create New */}
@@ -336,7 +336,7 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
                                 value={newHighlightName}
                                 onChange={(e) => setNewHighlightName(e.target.value)}
                                 placeholder="New Highlight"
-                                className="flex-1 bg-[#262626] border-none text-white text-sm rounded px-3 py-2 outline-none"
+                                className="flex-1 bg-[#F1E8DF] border-none text-[#1A1A1A] text-sm rounded px-3 py-2 outline-none"
                             />
                             <Button size="sm" onClick={handleCreateHighlight} className="bg-[#0095F6] hover:bg-[#1877F2]">
                                 <Plus size={16} />
@@ -348,10 +348,10 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
                     <div className="grid grid-cols-3 gap-3">
                         {highlights.map(h => (
                             <button key={h._id} onClick={() => handleAddToHighlight(h._id)} className="flex flex-col items-center gap-1 group">
-                                <div className="w-14 h-14 rounded-full border border-[#262626] overflow-hidden group-hover:opacity-80">
+                                <div className="w-14 h-14 rounded-full border border-gray-300 overflow-hidden group-hover:opacity-80">
                                     <img src={h.cover} className="w-full h-full object-cover" />
                                 </div>
-                                <span className="text-[10px] text-gray-400 truncate w-full text-center">{h.name}</span>
+                                <span className="text-[10px] text-gray-600 truncate w-full text-center">{h.name}</span>
                             </button>
                         ))}
                     </div>
@@ -361,26 +361,26 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
 
         {/* Viewers List Dialog */}
         <Dialog open={showViewersDialog} onOpenChange={setShowViewersDialog}>
-            <DialogContent className="sm:max-w-xs bg-[#121212] border-[#262626] p-0 overflow-hidden">
+            <DialogContent className="sm:max-w-xs bg-[#FAF6F0] border-gray-300 p-0 overflow-hidden">
                 <DialogTitle className="sr-only">Story Viewers</DialogTitle>
                 <DialogDescription className="sr-only">List of people who viewed this story</DialogDescription>
-                <div className="p-4 border-b border-[#262626] flex justify-between items-center">
-                    <h2 className="text-white font-bold">Viewers</h2>
-                    <X size={20} className="text-gray-400 cursor-pointer" onClick={() => setShowViewersDialog(false)} />
+                <div className="p-4 border-b border-gray-300 flex justify-between items-center">
+                    <h2 className="text-[#1A1A1A] font-bold">Viewers</h2>
+                    <X size={20} className="text-gray-600 cursor-pointer" onClick={() => setShowViewersDialog(false)} />
                 </div>
                 <div className="max-h-[300px] overflow-y-auto p-2">
                     {viewers.length === 0 ? (
                         <div className="p-8 text-center text-zinc-500 text-sm italic">No views yet</div>
                     ) : (
                         viewers.map(v => (
-                            <div key={v._id} className="flex items-center justify-between p-2 hover:bg-[#1a1a1a] rounded-lg transition-colors cursor-pointer group">
+                            <div key={v._id} className="flex items-center justify-between p-2 hover:bg-[#FFFFFF] rounded-lg transition-colors cursor-pointer group">
                                 <div className="flex items-center gap-3">
                                     <Avatar className="w-10 h-10">
                                         <AvatarImage src={v.profilePicture} />
                                         <AvatarFallback>{v.username[0]}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex flex-col">
-                                        <span className="text-white text-sm font-bold">{v.username}</span>
+                                        <span className="text-[#1A1A1A] text-sm font-bold">{v.username}</span>
                                         <span className="text-zinc-500 text-xs">Viewed your story</span>
                                     </div>
                                 </div>
@@ -397,13 +397,13 @@ const StoryViewer = ({ open, onOpenChange, storyGroups, initialGroupIndex }) => 
         {/* Navigation Arrows (visible on hover) */}
         <button 
           onClick={handlePrev} 
-          className="absolute -left-16 top-1/2 -translate-y-1/2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all hidden md:block"
+          className="absolute -left-16 top-1/2 -translate-y-1/2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-[#1A1A1A] transition-all hidden md:block"
         >
           <ChevronLeft size={30} />
         </button>
         <button 
           onClick={handleNext} 
-          className="absolute -right-16 top-1/2 -translate-y-1/2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all hidden md:block"
+          className="absolute -right-16 top-1/2 -translate-y-1/2 p-2 bg-white/10 hover:bg-white/20 rounded-full text-[#1A1A1A] transition-all hidden md:block"
         >
           <ChevronRight size={30} />
         </button>

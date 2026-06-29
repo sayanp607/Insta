@@ -44,7 +44,7 @@ const Explore = () => {
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-8">
-            <h1 className="text-xl font-bold mb-6 text-white px-2">Explore</h1>
+            <h1 className="text-xl font-bold mb-6 text-[#1A1A1A] px-2">Explore</h1>
             <div className="grid grid-cols-3 gap-1 md:gap-4">
                 {posts.length > 0 ? (
                     posts.map((post) => (
@@ -58,7 +58,7 @@ const Explore = () => {
                                 alt="explore_post" 
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                             />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-white font-bold">
+                            <div className="absolute inset-0 bg-[#FAF6F0]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-6 text-[#1A1A1A] font-bold">
                                 <div className="flex items-center gap-2">
                                     <Heart className="fill-white" size={20} />
                                     <span>{post.likes?.length || 0}</span>
@@ -71,7 +71,7 @@ const Explore = () => {
                         </div>
                     ))
                 ) : (
-                    <div className="col-span-3 text-center py-20 text-gray-500">
+                    <div className="col-span-3 text-center py-20 text-gray-600">
                         No posts to explore yet! Check back later.
                     </div>
                 )}

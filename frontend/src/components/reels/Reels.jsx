@@ -49,14 +49,14 @@ const Reels = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen w-full bg-black">
-        <Loader2 className="w-10 h-10 animate-spin text-white opacity-20" />
+      <div className="flex items-center justify-center h-screen w-full bg-[#FAF6F0]">
+        <Loader2 className="w-10 h-10 animate-spin text-[#1A1A1A] opacity-20" />
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className="fixed inset-0 lg:left-[18%] bg-black overflow-y-scroll snap-y snap-mandatory custom-scrollbar z-0 pb-20 lg:pb-0">
+    <div ref={containerRef} className="fixed inset-0 lg:left-[18%] bg-[#FAF6F0] overflow-y-scroll snap-y snap-mandatory custom-scrollbar z-0 pb-20 lg:pb-0">
       <div className="w-full max-w-[450px] mx-auto min-h-full">
         {reels.length > 0 ? (
           reels.map((reel) => (
@@ -68,7 +68,7 @@ const Reels = () => {
             />
           ))
         ) : (
-          <div className="flex flex-col items-center justify-center h-screen text-white/50">
+          <div className="flex flex-col items-center justify-center h-screen text-[#1A1A1A]/50">
             <p className="text-lg font-medium">No Reels yet</p>
             <p className="text-sm">Be the first to share a moment!</p>
           </div>
