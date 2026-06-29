@@ -210,7 +210,7 @@ export const getExplorePost = async (req, res) => {
     
     // Attempt to fetch ML Recommendations
     try {
-      const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+      const ML_BASE_URL = process.env.NODE_ENV === "production" ? "https://insta-mfwa.onrender.com" : "http://127.0.0.1:8000";
       const mlResponse = await fetch(`${ML_BASE_URL}/recommend/${userId}?limit=20`);
       if (mlResponse.ok) {
         const mlData = await mlResponse.json();
@@ -355,7 +355,7 @@ export const addComment = async (req, res) => {
 
     // 1. FAST FAIL: Run Custom ML Toxic Comment Classifier before hitting the DB
     try {
-      const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+      const ML_BASE_URL = process.env.NODE_ENV === "production" ? "https://insta-mfwa.onrender.com" : "http://127.0.0.1:8000";
       const mlResponse = await fetch(`${ML_BASE_URL}/moderate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
