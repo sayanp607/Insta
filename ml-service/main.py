@@ -198,6 +198,57 @@ def recommend_posts(user_id: str, limit: int = 10):
         print(f"ML Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/semantic_search")
+def semantic_search_users(query: str, limit: int = 10):
+    try:
+        # Get vector for the search query
+        query_vector = get_embedding(query)
+        
+        # Get all users
+        users = list(db.users.find({}))
+        if not users:
+            return {"users": [], "success": True}
+            
+        user_results = []
+        
+        for user in users:
+            # Combine username and bio for rich semantic meaning
+            search_text = f"{user.get('username', '')} {user.get('bio', '')}"
+            if not search_text.strip():
+                continue
+                
+            # Intelligent Caching: Check if we already embedded this user
+            if "search_embedding" in user and isinstance(user["search_embedding"], list) and len(user["search_embedding"]) == 1536:
+                user_vector = user["search_embedding"]
+            else:
+                user_vector = get_embedding(search_text)
+                # Cache it in DB so we never pay for this user's embedding again!
+                db.users.update_one({"_id": user["_id"]}, {"$set": {"search_embedding": user_vector}})
+                
+            sim = cosine_similarity([query_vector], [user_vector])[0][0]
+            
+            user_obj = {
+                "_id": str(user["_id"]),
+                "username": user.get("username", ""),
+                "profilePicture": user.get("profilePicture", ""),
+                "bio": user.get("bio", ""),
+                "similarity_score": float(sim)
+            }
+            user_results.append(user_obj)
+            
+        # Sort by highest semantic match
+        user_results.sort(key=lambda x: x["similarity_score"], reverse=True)
+        
+        # Only return users with at least a tiny bit of semantic similarity
+        top_matches = [u for u in user_results if u["similarity_score"] > 0.1][:limit]
+        
+        return {"users": top_matches, "success": True}
+        
+    except Exception as e:
+        print(f"ML Semantic Search Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/recommend_users/{user_id}")
 def recommend_users(user_id: str, limit: int = 5):
     try:

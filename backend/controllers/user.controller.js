@@ -504,7 +504,7 @@ export const markNotificationsAsRead = async (req, res) => {
     }
 };
 
-// Search users
+// Search users (Hybrid: ML Semantic + Fallback Regex)
 export const searchUsers = async (req, res) => {
     try {
         const query = req.query.query || "";
@@ -512,7 +512,22 @@ export const searchUsers = async (req, res) => {
             return res.status(200).json({ users: [], success: true });
         }
         
-        // Search by username or full name (case insensitive)
+        // 1. Attempt ML Semantic Search First
+        try {
+            const ML_BASE_URL = process.env.ML_SERVICE_URL || "http://127.0.0.1:8000";
+            const mlResponse = await fetch(`${ML_BASE_URL}/semantic_search?query=${encodeURIComponent(query)}&limit=20`);
+            if (mlResponse.ok) {
+                const mlData = await mlResponse.json();
+                if (mlData.success && mlData.users && mlData.users.length > 0) {
+                    console.log(`[ML Search] Found ${mlData.users.length} semantic matches for "${query}"`);
+                    return res.status(200).json({ users: mlData.users, success: true, isSemantic: true });
+                }
+            }
+        } catch (mlError) {
+            console.log("ML Semantic Search unavailable, falling back to standard text match.", mlError.message);
+        }
+        
+        // 2. Fallback: Standard MongoDB Regex Search
         const users = await User.find({
             $or: [
                 { username: { $regex: query, $options: "i" } },
@@ -520,7 +535,7 @@ export const searchUsers = async (req, res) => {
             ]
         }).select("_id username profilePicture bio").limit(20);
         
-        return res.status(200).json({ users, success: true });
+        return res.status(200).json({ users, success: true, isSemantic: false });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ message: "Internal server error", success: false });
