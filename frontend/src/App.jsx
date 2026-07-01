@@ -29,6 +29,7 @@ import AudioCall from "./components/AudioCall";
 import Explore from "./components/Explore";
 import Notifications from "./components/Notifications";
 import Reels from "./components/reels/Reels";
+import SearchPage from "./components/SearchPage";
 
 const browserRouter = createBrowserRouter([
   {
@@ -92,6 +93,14 @@ const browserRouter = createBrowserRouter([
         element: (
           <ProtectedRoutes>
             <Reels />
+          </ProtectedRoutes>
+        ),
+      },
+      {
+        path: "/search",
+        element: (
+          <ProtectedRoutes>
+            <SearchPage />
           </ProtectedRoutes>
         ),
       },
