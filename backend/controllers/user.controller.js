@@ -502,4 +502,27 @@ export const markNotificationsAsRead = async (req, res) => {
         console.log(error);
         return res.status(500).json({ message: 'Internal server error', success: false });
     }
-}
+};
+
+// Search users
+export const searchUsers = async (req, res) => {
+    try {
+        const query = req.query.query || "";
+        if (!query.trim()) {
+            return res.status(200).json({ users: [], success: true });
+        }
+        
+        // Search by username or full name (case insensitive)
+        const users = await User.find({
+            $or: [
+                { username: { $regex: query, $options: "i" } },
+                { bio: { $regex: query, $options: "i" } }
+            ]
+        }).select("_id username profilePicture bio").limit(20);
+        
+        return res.status(200).json({ users, success: true });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};

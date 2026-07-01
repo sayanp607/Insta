@@ -11,7 +11,8 @@ import {
   acceptFollowRequest,
   declineFollowRequest,
   getNotifications,
-  markNotificationsAsRead
+  markNotificationsAsRead,
+  searchUsers
 } from "../controllers/user.controller.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import upload from "../middlewares/multer.js";
@@ -26,6 +27,7 @@ router
   .route("/profile/edit")
   .post(isAuthenticated, upload.single("profilePhoto"), editProfile);
 router.route("/suggested").get(isAuthenticated, getSuggestedUsers);
+router.route("/search").get(isAuthenticated, searchUsers);
 router.route("/followorunfollow/:id").post(isAuthenticated, followOrUnfollow);
 router.route("/toggle-privacy").post(isAuthenticated, togglePrivacy);
 router.route("/follow-request/accept/:id").post(isAuthenticated, acceptFollowRequest);
