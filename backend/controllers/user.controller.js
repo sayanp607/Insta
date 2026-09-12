@@ -216,7 +216,13 @@ export const editProfile = async (req, res) => {
       if (gender) user.gender = gender;
       if (profilePicture) user.profilePicture = cloudResponse.secure_url;
 
+      // Clear ML semantic cache so the updated bio is re-indexed on the next search
+      user.profile_embedding_v2 = undefined;
+      user.search_embedding = undefined;
       await user.save();
+      
+      // Force remove from MongoDB completely just to be safe
+      await User.updateOne({ _id: userId }, { $unset: { profile_embedding_v2: 1, search_embedding: 1 } });
 
       return res.status(200).json({
           message: 'Profile updated.',

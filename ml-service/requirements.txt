@@ -1,7 +1,10 @@
 fastapi
 uvicorn
 pymongo
-scikit-learn
+scikit-learn==1.6.1
 python-dotenv
 numpy
 openai
+joblib
+scipy
+requests

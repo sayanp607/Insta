@@ -20,7 +20,12 @@ app = FastAPI(title="NexaSocial ML Recommendation Service (Advanced)")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://insta-frontend-ehjp.vercel.app",
+        "https://insta-rho-eight.vercel.app",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -212,18 +217,34 @@ def semantic_search_users(query: str, limit: int = 10):
         user_results = []
         
         for user in users:
-            # Combine username and bio for rich semantic meaning
-            search_text = f"{user.get('username', '')} {user.get('bio', '')}"
-            if not search_text.strip():
+            bio = user.get('bio', '')
+            
+            # Fetch up to 10 recent posts to build a rich content profile
+            user_posts = list(db.posts.find({"author": user["_id"]}).limit(10))
+            post_captions = " ".join([p.get('caption', '') for p in user_posts])
+            post_tags = " ".join([t for p in user_posts for t in p.get('aiTags', [])])
+            
+            # Combine username, bio, post captions, and ML tags
+            search_text = f"{user.get('username', '')} {bio} {post_captions} {post_tags}".strip()
+            
+            # DEBUG LOGGING:
+            print(f"DEBUG: user={user.get('username')}, search_text='{search_text}'")
+            
+            # If the user has absolutely no bio and no posts, skip them!
+            # We check the length of bio + captions + tags (ignoring username)
+            content_length = len(bio.strip()) + len(post_captions.strip()) + len(post_tags.strip())
+            if content_length < 3:
+                print(f"DEBUG: Skipping {user.get('username')} because they have no bio and no posts!")
                 continue
                 
-            # Intelligent Caching: Check if we already embedded this user
-            if "search_embedding" in user and isinstance(user["search_embedding"], list) and len(user["search_embedding"]) == 1536:
-                user_vector = user["search_embedding"]
+            # Intelligent Caching: Check if we already embedded this rich profile
+            # We use a new key 'profile_embedding_v2' to invalidate the old bio-only cache
+            if "profile_embedding_v2" in user and isinstance(user["profile_embedding_v2"], list) and len(user["profile_embedding_v2"]) == 1536:
+                user_vector = user["profile_embedding_v2"]
             else:
                 user_vector = get_embedding(search_text)
                 # Cache it in DB so we never pay for this user's embedding again!
-                db.users.update_one({"_id": user["_id"]}, {"$set": {"search_embedding": user_vector}})
+                db.users.update_one({"_id": user["_id"]}, {"$set": {"profile_embedding_v2": user_vector}})
                 
             sim = cosine_similarity([query_vector], [user_vector])[0][0]
             
@@ -239,8 +260,9 @@ def semantic_search_users(query: str, limit: int = 10):
         # Sort by highest semantic match
         user_results.sort(key=lambda x: x["similarity_score"], reverse=True)
         
-        # Only return users with at least a tiny bit of semantic similarity
-        top_matches = [u for u in user_results if u["similarity_score"] > 0.1][:limit]
+        # Only return users with a REASONABLE semantic similarity (threshold: 0.25)
+        # We lowered it from 0.45 to 0.25 because rich profiles with lots of posts have diluted embeddings
+        top_matches = [u for u in user_results if u["similarity_score"] > 0.25][:limit]
         
         return {"users": top_matches, "success": True}
         

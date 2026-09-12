@@ -2,6 +2,8 @@ import express ,{ urlencoded }from "express";
 import cors from "cors"
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import connectDB from "./utils/db.js";
 import userRoute from "./routes/user.route.js";
 import postRoute from "./routes/post.route.js";
@@ -13,7 +15,7 @@ import { connectKafka } from "./config/kafka.js";
 import { connectRedis } from "./config/redis.js";
 
 
-dotenv.config({});
+dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env"), override: true });
 
 const PORT = process.env.PORT || 3000;
 

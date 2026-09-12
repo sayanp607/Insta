@@ -8,7 +8,7 @@ import { Notification } from "../models/notification.model.js";
 import { Conversation } from "../models/conversation.model.js";
 import { Message } from "../models/message.model.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
-import redisClient from "../config/redis.js";
+import redisClient, { getCache, setCache } from "../config/redis.js";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
@@ -66,7 +66,12 @@ export const addNewPost = async (req, res) => {
     const user = await User.findById(authorId);
     if (user) {
       user.posts.push(post._id);
+      // Clear the user's ML search embedding cache so their new post gets indexed immediately
+      user.profile_embedding_v2 = undefined; 
+      user.search_embedding = undefined;
       await user.save();
+      // Force remove from MongoDB completely just to be safe
+      await User.updateOne({ _id: authorId }, { $unset: { profile_embedding_v2: 1, search_embedding: 1 } });
     }
 
     // AI Auto-Tagging (runs async, doesn't block response)
@@ -122,7 +127,7 @@ export const getAllPost = async (req, res) => {
   try {
     // REDIS CACHE: Check if home feed is in memory
     const cacheKey = 'home_feed';
-    const cachedFeed = await redisClient.get(cacheKey);
+    const cachedFeed = await getCache(cacheKey);
     
     if (cachedFeed) {
       console.log(`[Redis] Cache Hit for home feed`);
@@ -153,7 +158,7 @@ export const getAllPost = async (req, res) => {
     
     // REDIS CACHE: Store the result in Redis for 1 minute (60 seconds)
     // We use a shorter time here so the global feed updates faster when someone posts
-    await redisClient.setEx(cacheKey, 60, JSON.stringify(posts));
+    await setCache(cacheKey, 60, JSON.stringify(posts));
 
     return res.status(200).json({
       posts,
@@ -198,7 +203,7 @@ export const getExplorePost = async (req, res) => {
     
     // REDIS CACHE: Check if user's explore feed is in memory
     const cacheKey = `explore_feed:${userId}`;
-    const cachedFeed = await redisClient.get(cacheKey);
+    const cachedFeed = await getCache(cacheKey);
     
     if (cachedFeed) {
       console.log(`[Redis] Cache Hit for explore feed: ${userId}`);
@@ -266,7 +271,7 @@ export const getExplorePost = async (req, res) => {
     }
 
     // REDIS CACHE: Store the result in Redis for 5 minutes (300 seconds)
-    await redisClient.setEx(cacheKey, 300, JSON.stringify(posts));
+    await setCache(cacheKey, 300, JSON.stringify(posts));
 
     return res.status(200).json({ posts, success: true });
   } catch (error) {
