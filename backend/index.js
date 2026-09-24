@@ -13,6 +13,7 @@ import highlightRoute from "./routes/highlight.route.js";
 import {app,server} from "./socket/socket.js"
 import { connectKafka } from "./config/kafka.js";
 import { connectRedis } from "./config/redis.js";
+import { initNotificationWorker } from "./workers/notificationWorker.js";
 
 
 dotenv.config({ path: path.join(path.dirname(fileURLToPath(import.meta.url)), ".env"), override: true });
@@ -60,6 +61,7 @@ server.listen(PORT, async ()=>{
   await connectDB();
   await connectRedis();
   await connectKafka();
+  initNotificationWorker();
   console.log(`server running on ${PORT}`);
 
 });

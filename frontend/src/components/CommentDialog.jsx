@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogTrigger } from "./ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "./ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Link } from "react-router-dom";
 import { MoreHorizontal, Heart, Bookmark, MessageCircle, Send } from "lucide-react";
@@ -176,6 +176,7 @@ const CommentDialog = ({ open, setOpen }) => {
         onInteractOutside={() => setOpen(false)}
         className="max-w-5xl p-0 flex flex-col border-gray-300 bg-[#FAF6F0] overflow-hidden rounded-xl shadow-2xl h-[80vh]"
       >
+        <DialogTitle className="sr-only">Comments</DialogTitle>
         <div className="flex flex-1 h-full">
           <div className="hidden md:flex w-3/5 bg-[#FAF6F0] items-center justify-center border-r border-gray-300">
             <img
