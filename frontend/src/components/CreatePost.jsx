@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { setPosts } from "@/redux/postSlice";
-import { API_BASE_URL } from "@/main";
+import { API_BASE_URL, ML_BASE_URL } from "@/main";
 import CropStep from "./post-upload/CropStep";
 import FilterStep from "./post-upload/FilterStep";
 import MusicStep from "./post-upload/MusicStep";
@@ -70,7 +70,7 @@ const CreatePost = ({ open, setOpen }) => {
     if (!aiPrompt.trim()) return;
     try {
       setGeneratingAi(true);
-      const res = await axios.post("http://localhost:8000/generate_image", { prompt: aiPrompt, provider: aiProvider });
+      const res = await axios.post(`${ML_BASE_URL}/generate_image`, { prompt: aiPrompt, provider: aiProvider });
       if (res.data.success && res.data.image_url) {
         // Fetch the generated image and convert to File
         const imageRes = await fetch(res.data.image_url);
