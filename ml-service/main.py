@@ -10,12 +10,25 @@ from sklearn.metrics.pairwise import cosine_similarity
 from bson import ObjectId
 from openai import OpenAI
 from datetime import datetime
+import time
 import joblib
 import scipy.sparse as sp
+from scipy.stats import ks_2samp
 
 load_dotenv()
 
 app = FastAPI(title="NexaSocial ML Recommendation Service (Advanced)")
+
+# =====================================================================
+# IN-MEMORY MLOps METRICS & MONITORING STORE
+# =====================================================================
+metrics_store = {
+    "total_requests": 0,
+    "total_flagged": 0,
+    "latencies_ms": [],
+    "recent_probabilities": [],
+    "baseline_probabilities": [0.05, 0.08, 0.02, 0.12, 0.04, 0.01, 0.03, 0.09, 0.02, 0.06] * 10
+}
 
 # Configure CORS
 app.add_middleware(
@@ -71,6 +84,8 @@ def moderate_text(request: ModerationRequest):
     if not toxic_model:
         raise HTTPException(status_code=500, detail="Toxic comment model is not loaded.")
     
+    start_time = time.perf_counter()
+    
     word_features = word_tfidf.transform([request.text])
     char_features = char_tfidf.transform([request.text])
     combined_features = sp.hstack([word_features, char_features])
@@ -97,10 +112,96 @@ def moderate_text(request: ModerationRequest):
     except:
         toxic_probability = 1.0 if is_toxic else 0.0
     
+    # Track MLOps Telemetry
+    latency_ms = (time.perf_counter() - start_time) * 1000
+    metrics_store["total_requests"] += 1
+    if is_toxic:
+        metrics_store["total_flagged"] += 1
+    metrics_store["latencies_ms"].append(latency_ms)
+    metrics_store["recent_probabilities"].append(toxic_probability)
+    # Keep rolling window of last 500 requests
+    if len(metrics_store["latencies_ms"]) > 500:
+        metrics_store["latencies_ms"].pop(0)
+    if len(metrics_store["recent_probabilities"]) > 500:
+        metrics_store["recent_probabilities"].pop(0)
+    
     return {
         "flagged": is_toxic,
         "toxic_probability": toxic_probability,
-        "categories": ["custom_ml_toxicity"] if is_toxic else []
+        "categories": ["custom_ml_toxicity"] if is_toxic else [],
+        "latency_ms": round(latency_ms, 2)
+    }
+
+# =====================================================================
+# MLOps ENDPOINTS: MODEL PERFORMANCE MONITORING & DRIFT DETECTION
+# =====================================================================
+@app.get("/mlops/metrics")
+def get_mlops_metrics():
+    """
+    Model Performance Monitoring Endpoint:
+    Provides live throughput, latency percentiles (p50, p95, p99),
+    and model flagging rates.
+    """
+    total = metrics_store["total_requests"]
+    flagged = metrics_store["total_flagged"]
+    latencies = metrics_store["latencies_ms"]
+    
+    if latencies:
+        p50 = float(np.percentile(latencies, 50))
+        p95 = float(np.percentile(latencies, 95))
+        p99 = float(np.percentile(latencies, 99))
+        avg_latency = float(np.mean(latencies))
+    else:
+        p50, p95, p99, avg_latency = 0.0, 0.0, 0.0, 0.0
+        
+    flag_rate = (flagged / total * 100) if total > 0 else 0.0
+    
+    return {
+        "status": "healthy",
+        "total_inferences": total,
+        "total_flagged": flagged,
+        "flag_rate_pct": round(flag_rate, 2),
+        "latency_summary_ms": {
+            "avg": round(avg_latency, 2),
+            "p50": round(p50, 2),
+            "p95": round(p95, 2),
+            "p99": round(p99, 2)
+        },
+        "sample_size": len(latencies)
+    }
+
+@app.get("/mlops/drift")
+def detect_model_drift():
+    """
+    Model Data/Prediction Drift Detection Endpoint:
+    Performs Kolmogorov-Smirnov (KS) two-sample statistical test comparing
+    baseline training distribution against recent production prediction probabilities.
+    """
+    recent = metrics_store["recent_probabilities"]
+    baseline = metrics_store["baseline_probabilities"]
+    
+    if len(recent) < 5:
+        return {
+            "drift_detected": False,
+            "message": "Insufficient live production samples to compute statistical drift. At least 5 requests needed.",
+            "current_samples": len(recent)
+        }
+        
+    # Run two-sample Kolmogorov-Smirnov test
+    stat, p_value = ks_2samp(baseline, recent)
+    
+    # p-value < 0.05 indicates statistically significant distribution shift
+    drift_detected = bool(p_value < 0.05)
+    
+    return {
+        "test": "Two-Sample Kolmogorov-Smirnov (KS) Test",
+        "drift_detected": drift_detected,
+        "ks_statistic": round(float(stat), 4),
+        "p_value": round(float(p_value), 4),
+        "significance_threshold": 0.05,
+        "baseline_samples": len(baseline),
+        "recent_samples": len(recent),
+        "interpretation": "Drift Alert: The distribution of recent inputs significantly deviates from baseline. Model retraining recommended." if drift_detected else "Distributions are consistent. Model is operating normally."
     }
 
 @app.get("/recommend/{user_id}")
