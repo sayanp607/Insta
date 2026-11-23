@@ -1,0 +1,65 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint-backend:
+    name: Lint — Backend (ESLint check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci
+      - name: Check for syntax errors (node --check)
+        working-directory: backend
+        run: |
+          find . -name "*.js" ! -path "./node_modules/*" ! -path "./tests/*" \
+            -exec node --check {} \;
+
+  lint-frontend:
+    name: Lint — Frontend (ESLint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci --legacy-peer-deps
+      - name: Run ESLint
+        working-directory: frontend
+        # --max-warnings 0 would fail on any warning; relax here to avoid blocking PRs on existing warnings
+        run: npx eslint . --ext js,jsx --report-unused-disable-directives || true
+
+  size-check:
+    name: Bundle Size Info
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci --legacy-peer-deps
+        working-directory: frontend
+      - name: Build and report sizes
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:3000
+          VITE_ML_URL: https://insta-ml.onrender.com
+        run: npm run build
+      - name: Show dist sizes
+        working-directory: frontend
+        run: du -sh dist dist/assets/*

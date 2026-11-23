@@ -6,8 +6,8 @@ import { Provider } from "react-redux";
 import store from "./redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import persistStore from "redux-persist/es/persistStore";
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-export const ML_BASE_URL = import.meta.env.VITE_ML_URL || "https://insta-ml.onrender.com";
+export * from "./config.js";
+import { API_BASE_URL, ML_BASE_URL } from "./config.js";
 let persistor = persistStore(store);
 createRoot(document.getElementById("root")).render(
   <Provider store={store}>

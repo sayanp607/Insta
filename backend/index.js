@@ -57,11 +57,15 @@ app.get("/",(req,res)=>{
     })
 })
 
-server.listen(PORT, async ()=>{
-  await connectDB();
-  await connectRedis();
-  await connectKafka();
-  initNotificationWorker();
-  console.log(`server running on ${PORT}`);
+if (process.env.NODE_ENV !== "test") {
+  server.listen(PORT, async ()=>{
+    await connectDB();
+    await connectRedis();
+    await connectKafka();
+    initNotificationWorker();
+    console.log(`server running on ${PORT}`);
+  });
+}
 
-});
+export { app, server };
+export default app;
