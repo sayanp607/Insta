@@ -32,6 +32,7 @@ jobs:
         env:
           NODE_ENV: test
           SECRET_KEY: ${{ secrets.SECRET_KEY || 'test_secret_key_ci' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || 'test_openai_key_ci' }}
         run: |
           npm ci
           npm test

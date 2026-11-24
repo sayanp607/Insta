@@ -9,6 +9,7 @@ export default defineConfig({
       NODE_ENV: "test",
       SECRET_KEY: "test_secret_key_for_testing",
       PORT: "9999",
+      OPENAI_API_KEY: "test_openai_key",
     },
   },
 });

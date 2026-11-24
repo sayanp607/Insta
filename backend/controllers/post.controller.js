@@ -12,7 +12,7 @@ import redisClient, { getCache, setCache } from "../config/redis.js";
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || "dummy_api_key_for_init",
 });
 
 export const addNewPost = async (req, res) => {
